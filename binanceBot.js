@@ -94,7 +94,7 @@ const checkPrice = async (symbol, interval) => {
       reversedInput: true,
     });
     const calculatedEMA25 = EMA.calculate({
-      period: 26,
+      period: 25,
       values: closingPriceArr,
       reversedInput: true,
     });
@@ -107,8 +107,8 @@ const checkPrice = async (symbol, interval) => {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Init apps
-// setInterval(() => {
-// checkFutureBalance();
-// newOrder("BTCUSDT", "BUY", "LIMIT", "GTC", 0.01, 18000);
-checkPrice("BTCUSDT", "30m");
-// }, 1000);
+setInterval(() => {
+  checkFutureBalance();
+  // newOrder("BTCUSDT", "BUY", "LIMIT", "GTC", 0.01, 18000);
+  // checkPrice("BTCUSDT", "30m");
+}, 1000);
