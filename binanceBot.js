@@ -1,114 +1,149 @@
-require("dotenv").config();
+const accountAPI = require("./API/accountAPI");
+const marketAPI = require("./API/marketAPI");
+const TA = require("./technical_Indicator");
 
-const CryptoJS = require("crypto-js");
-const axios = require("axios").default;
-// const technicalindicators = require("technicalindicators");
-// technicalindicators.setConfig("precision", 10);
-// const EMA = technicalindicators.EMA;
-const EMA = require("technicalindicators").EMA;
+///////////////////////////////////////////////////////////////////////////////////////////////
+// Init setting for 1st time
+let targetProfit = 0.01;
+let stopLoss = -0.007;
+let accountMargin = "ISOLATED";
+let accountLeverage = 5;
+let tradePair = "BTCUSDT";
+let positionPlaced = 0.01;
 
-let klineData = [];
-let closingPriceArr = [];
-let prevEMA7;
-let prevEMA25;
-
-////////////////////////////////////////////////////////////////////////////////////////////////
-// Check future balance
-const checkFutureBalance = async () => {
-  try {
-    const timeStamp = Date.now();
-    const queryString = `timestamp=${timeStamp}`;
-    const signature = CryptoJS.HmacSHA256(
-      queryString,
-      process.env.API_SECRET
-    ).toString();
-
-    const response = await axios.get(
-      `${process.env.TESTNET}/fapi/v2/balance?timestamp=${timeStamp}&signature=${signature}`,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          "X-MBX-APIKEY": process.env.API_KEY,
-        },
-      }
-    );
-
-    const USDTBalance = response.data.find((el) => el.asset === "USDT");
-    console.log(USDTBalance);
-  } catch (err) {
-    console.log(err);
-  }
-};
-
-////////////////////////////////////////////////////////////////////////////////////////////////
-// Open new Order
-const newOrder = async (symbol, side, type, timeInForce, quantity, price) => {
-  try {
-    const timeStamp = Date.now();
-    const queryString = `symbol=${symbol}&side=${side}&type=${type}&timeInForce=${timeInForce}&quantity=${quantity}&price=${price}&timestamp=${timeStamp}`;
-
-    const signature = CryptoJS.HmacSHA256(
-      queryString,
-      process.env.API_SECRET
-    ).toString();
-
-    const response = await axios({
-      method: "post",
-      url: `${process.env.TESTNET}/fapi/v1/order?${queryString}&signature=${signature}`,
-      headers: {
-        "Content-Type": "application/json",
-        "X-MBX-APIKEY": process.env.API_KEY,
-      },
-    });
-
-    console.log(response.data);
-  } catch (err) {
-    console.log(err);
-  }
-};
-
-////////////////////////////////////////////////////////////////////////////////////////////////
-// Check BTC K-line
-const checkPrice = async (symbol, interval) => {
-  try {
-    const queryString = `symbol=${symbol}&interval=${interval}`;
-
-    const response = await axios({
-      method: "get",
-      url: `${process.env.TESTNET}/fapi/v1/klines?${queryString}`,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    klineData = [...response.data];
-    klineData = klineData.reverse().slice(0, 61);
-
-    closingPriceArr = klineData.map((el) => +el[4]);
-    // console.log(closingPriceArr);
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    // EMA formula
-    const calculatedEMA7 = EMA.calculate({
-      period: 7,
-      values: closingPriceArr,
-      reversedInput: true,
-    });
-    const calculatedEMA25 = EMA.calculate({
-      period: 25,
-      values: closingPriceArr,
-      reversedInput: true,
-    });
-
-    console.log(calculatedEMA25);
-  } catch (err) {
-    console.log(err);
-  }
-};
+accountAPI
+  .initialMargin(tradePair, accountMargin)
+  .then((data) => console.log(data));
+accountAPI
+  .initialLeverage(tradePair, accountLeverage)
+  .then((data) => console.log(data));
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Init apps
-setInterval(() => {
-  checkFutureBalance();
-  // newOrder("BTCUSDT", "BUY", "LIMIT", "GTC", 0.01, 18000);
-  // checkPrice("BTCUSDT", "30m");
-}, 1000);
+const init = async () => {
+  // 1)Set up Account Balance, preEMA and Position Balance (if available)
+  let interval;
+
+  let accountAvailableBalance = +(await accountAPI.checkFutureBalance()).find(
+    (el) => el.asset === "USDT"
+  ).availableBalance;
+  console.log(`Account USDT: ${accountAvailableBalance}`);
+
+  const closingPrice = (await marketAPI.checkPrice(tradePair, "30m", 61)).map(
+    (el) => +el[4]
+  );
+  let prevEMA7 = TA.calculateEMA(7, closingPrice)[1];
+  let prevEMA25 = TA.calculateEMA(25, closingPrice)[1];
+  let prevNetEMA = prevEMA7 - prevEMA25;
+  console.log(
+    `PrevEMA7:${prevEMA7}\nPrevEMA25:${prevEMA25}\nPrevNetEMA=${prevNetEMA}`
+  );
+
+  const position = (await accountAPI.checkPosition(tradePair))[0];
+  let positionAmt = +position.positionAmt;
+  let positionPrice = +position.entryPrice;
+  console.log(positionPrice, positionAmt);
+
+  // 2) If there is position
+  if (positionAmt !== 0) {
+    clearInterval(interval);
+    interval = setInterval(async () => {
+      // If position is short
+      if (position.positionAmt.startsWith("-")) {
+        const currentPriceArr = (
+          await marketAPI.checkPrice(tradePair, "30m")
+        )[0];
+        const currentPrice = +currentPriceArr[4];
+        console.log(currentPrice);
+
+        // If profit >= 1%, open order to close the position, reset Account Balance and Position Balance
+        if ((positionPrice - currentPrice) / currentPrice >= targetProfit) {
+          accountAPI.newOrderMarket(tradePair, "BUY", positionPlaced);
+          console.log(
+            `Profit earned: ${
+              ((positionPrice - currentPrice) * positionPlaced) /
+              accountLeverage
+            }`
+          );
+          positionPrice = positionAmt = 0;
+          clearInterval(interval);
+          return init();
+        }
+        if ((positionPrice - currentPrice) / currentPrice <= stopLoss) {
+          accountAPI.newOrderMarket(tradePair, "BUY", positionPlaced);
+          console.log(
+            `Loss for: ${
+              ((positionPrice - currentPrice) * positionPlaced) /
+              accountLeverage
+            }`
+          );
+          positionPrice = positionAmt = 0;
+          clearInterval(interval);
+          return init();
+        }
+      }
+
+      // If position is long
+      if (positionAmt > 0) {
+        const currentPriceArr = (
+          await marketAPI.checkPrice(tradePair, "30m")
+        )[0];
+        const currentPrice = +currentPriceArr[4];
+        console.log(currentPrice);
+
+        // If profit >= 1%, open order to close the position, reset Account Balance and Position Balance
+        if ((currentPrice - positionPrice) / positionPrice >= targetProfit) {
+          accountAPI.newOrderMarket(tradePair, "SELL", positionPlaced);
+          console.log(
+            `Profit earned: ${
+              ((currentPrice - positionPrice) * positionPlaced) /
+              accountLeverage
+            }`
+          );
+          positionPrice = positionAmt = 0;
+          clearInterval(interval);
+          return init();
+        }
+        if ((currentPrice - positionPrice) / positionPrice <= stopLoss) {
+          accountAPI.newOrderMarket(tradePair, "SELL", positionPlaced);
+          console.log(
+            `Loss for: ${
+              ((currentPrice - positionPrice) * positionPlaced) /
+              accountLeverage
+            }`
+          );
+          positionPrice = positionAmt = 0;
+          clearInterval(interval);
+          return init();
+        }
+      }
+    }, 1000);
+  }
+
+  if (positionAmt === 0) {
+    clearInterval(interval);
+    // to check prevEMA
+  }
+
+  // const response = await accountAPI.newOrderMarket("BTCUSDT", "SELL", 0.01);
+  // console.log(response);
+
+  // const closingPrice = (await marketAPI.checkPrice("BTCUSDT", "30m", 61)).map(
+  //   (el) => +el[4]
+  // );
+
+  // const currentEMA7 = TA.calculateEMA(7, closingPrice)[0];
+  // const currentEMA25 = TA.calculateEMA(25, closingPrice)[0];
+  // const currentNetEMA = currentEMA7 - currentEMA25;
+
+  // console.log(currentEMA7, currentEMA25, currentNetEMA);
+
+  // marketAPI
+  //   .checkPrice("BTCUSDT", "30m", 61)
+  //   .then((data) => data.map((el) => +el[4]))
+  //   .then((closingPriceArr) =>
+  //     console.log(TA.calculateEMA(7, closingPriceArr)[0])
+  //   );
+};
+
+init();
