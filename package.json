@@ -4,6 +4,25 @@
     "axios": "^0.27.2",
     "crypto-js": "^4.1.1",
     "dotenv": "^16.0.1",
+    "express": "^4.18.1",
+    "nodemon": "^2.0.19",
     "technicalindicators": "^3.1.0"
-  }
+  },
+  "name": "binancebot",
+  "version": "1.0.0",
+  "main": "binanceBot.js",
+  "scripts": {
+    "start": "node binanceBot.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Defilearning/BinanceBot.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Defilearning/BinanceBot/issues"
+  },
+  "homepage": "https://github.com/Defilearning/BinanceBot#readme",
+  "description": ""
 }

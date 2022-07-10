@@ -9,6 +9,23 @@ const headers = {
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+// Check Income History
+exports.checkIncome = async () => {
+  try {
+    const queryString = `timestamp=${Date.now()}`;
+    const signature = obtainSignature(queryString);
+    const response = await axios({
+      method: "get",
+      url: `${process.env.TESTNET}/fapi/v1/income?${queryString}&signature=${signature}`,
+      headers,
+    });
+    return response.data;
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////
 // Check future balance
 exports.checkFutureBalance = async () => {
   try {
@@ -94,7 +111,7 @@ exports.newOrderLimit = async (symbol, side, timeInForce, quantity, price) => {
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Open new GTC Order
+// Open new Market Order
 exports.newOrderMarket = async (symbol, side, quantity) => {
   try {
     const queryString = `symbol=${symbol}&side=${side}&type=MARKET&quantity=${quantity}&timestamp=${Date.now()}`;

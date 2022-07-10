@@ -4,12 +4,17 @@ const TA = require("./technical_Indicator");
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 // Init setting for 1st time
-let targetProfit = 0.01;
-let stopLoss = -0.007;
+let targetProfit = 0.013;
+let stopLoss = -0.01;
+let accountFiat = "USDT";
 let accountMargin = "ISOLATED";
 let accountLeverage = 5;
 let tradePair = "BTCUSDT";
-let positionPlaced = 0.01;
+let positionPlaced;
+let accountPercentage = 0.11;
+
+let positionIntervalSec = 1;
+let OrderIntervalMin = 15;
 
 accountAPI
   .initialMargin(tradePair, accountMargin)
@@ -24,26 +29,30 @@ const init = async () => {
   // 1)Set up Account Balance, preEMA and Position Balance (if available)
   let interval;
 
+  // Check account balance
   let accountAvailableBalance = +(await accountAPI.checkFutureBalance()).find(
-    (el) => el.asset === "USDT"
+    (el) => el.asset === accountFiat
   ).availableBalance;
   console.log(`Account USDT: ${accountAvailableBalance}`);
 
-  const closingPrice = (await marketAPI.checkPrice(tradePair, "30m", 61)).map(
-    (el) => +el[4]
-  );
-  let prevEMA7 = TA.calculateEMA(7, closingPrice)[1];
-  let prevEMA25 = TA.calculateEMA(25, closingPrice)[1];
-  let prevNetEMA = prevEMA7 - prevEMA25;
-  console.log(
-    `PrevEMA7:${prevEMA7}\nPrevEMA25:${prevEMA25}\nPrevNetEMA=${prevNetEMA}`
-  );
+  if (accountAvailableBalance < 11) {
+    console.log(`Account not available balance, Please top up!`);
+    return;
+  }
 
+  // To calculate next order amount
+  let nextOrderPrice =
+    accountAvailableBalance * accountPercentage > 11
+      ? accountAvailableBalance * accountPercentage
+      : 11;
+
+  // To set up current position price and current position quantity
   const position = (await accountAPI.checkPosition(tradePair))[0];
   let positionAmt = +position.positionAmt;
   let positionPrice = +position.entryPrice;
-  console.log(positionPrice, positionAmt);
+  positionPlaced = Math.abs(positionAmt);
 
+  //////////////////////////////////////////////////////////////////////////////
   // 2) If there is position
   if (positionAmt !== 0) {
     clearInterval(interval);
@@ -51,7 +60,7 @@ const init = async () => {
       // If position is short
       if (position.positionAmt.startsWith("-")) {
         const currentPriceArr = (
-          await marketAPI.checkPrice(tradePair, "30m")
+          await marketAPI.checkPrice(tradePair, "15m")
         )[0];
         const currentPrice = +currentPriceArr[4];
         console.log(currentPrice);
@@ -60,22 +69,15 @@ const init = async () => {
         if ((positionPrice - currentPrice) / currentPrice >= targetProfit) {
           accountAPI.newOrderMarket(tradePair, "BUY", positionPlaced);
           console.log(
-            `Profit earned: ${
-              ((positionPrice - currentPrice) * positionPlaced) /
-              accountLeverage
-            }`
+            `Profit earned: ${(positionPrice - currentPrice) * positionPlaced}`
           );
-          positionPrice = positionAmt = 0;
           clearInterval(interval);
           return init();
         }
         if ((positionPrice - currentPrice) / currentPrice <= stopLoss) {
           accountAPI.newOrderMarket(tradePair, "BUY", positionPlaced);
           console.log(
-            `Loss for: ${
-              ((positionPrice - currentPrice) * positionPlaced) /
-              accountLeverage
-            }`
+            `Loss for: ${(positionPrice - currentPrice) * positionPlaced}`
           );
           positionPrice = positionAmt = 0;
           clearInterval(interval);
@@ -86,7 +88,7 @@ const init = async () => {
       // If position is long
       if (positionAmt > 0) {
         const currentPriceArr = (
-          await marketAPI.checkPrice(tradePair, "30m")
+          await marketAPI.checkPrice(tradePair, "15m")
         )[0];
         const currentPrice = +currentPriceArr[4];
         console.log(currentPrice);
@@ -95,10 +97,7 @@ const init = async () => {
         if ((currentPrice - positionPrice) / positionPrice >= targetProfit) {
           accountAPI.newOrderMarket(tradePair, "SELL", positionPlaced);
           console.log(
-            `Profit earned: ${
-              ((currentPrice - positionPrice) * positionPlaced) /
-              accountLeverage
-            }`
+            `Profit earned: ${(currentPrice - positionPrice) * positionPlaced}`
           );
           positionPrice = positionAmt = 0;
           clearInterval(interval);
@@ -107,43 +106,58 @@ const init = async () => {
         if ((currentPrice - positionPrice) / positionPrice <= stopLoss) {
           accountAPI.newOrderMarket(tradePair, "SELL", positionPlaced);
           console.log(
-            `Loss for: ${
-              ((currentPrice - positionPrice) * positionPlaced) /
-              accountLeverage
-            }`
+            `Loss for: ${(currentPrice - positionPrice) * positionPlaced}`
           );
           positionPrice = positionAmt = 0;
           clearInterval(interval);
           return init();
         }
       }
-    }, 1000);
+    }, positionIntervalSec * 1000);
   }
 
+  /////////////////////////////////////////////////////////////////////////////
+  // 3) If there is no position
   if (positionAmt === 0) {
     clearInterval(interval);
-    // to check prevEMA
+    interval = setInterval(async () => {
+      // Obatin closing price
+      const closingPrice = (
+        await marketAPI.checkPrice(tradePair, "15m", 61)
+      ).map((el) => +el[4]);
+
+      //To get order quantity
+      let orderQuantity = (nextOrderPrice / closingPrice[0]).toFixed(3);
+
+      // Check prevEMA
+      let prevEMA7 = TA.calculateEMA(7, closingPrice)[1];
+      let prevEMA25 = TA.calculateEMA(25, closingPrice)[1];
+      let prevNetEMA = prevEMA7 - prevEMA25;
+
+      // Check currentEMA
+      let currentEMA7 = TA.calculateEMA(7, closingPrice)[0];
+      let currentEMA25 = TA.calculateEMA(25, closingPrice)[0];
+      let currentNetEMA = currentEMA7 - currentEMA25;
+
+      // If prevEMA is -ve and currentEMA is +ve
+      if (Math.sign(prevNetEMA) === -1 && Math.sign(currentNetEMA) === 1) {
+        accountAPI.newOrderMarket(tradePair, "BUY", orderQuantity);
+        console.log(`Position placed: LONG ${orderQuantity} ${tradePair}`);
+        clearInterval(interval);
+        return init();
+      }
+
+      // If prevEMA is +ve and currentEMA is -ve
+      if (Math.sign(prevNetEMA) === 1 && Math.sign(currentNetEMA) === -1) {
+        accountAPI.newOrderMarket(tradePair, "SELL", orderQuantity);
+        console.log(`Position placed: SHORT ${orderQuantity} ${tradePair}`);
+        clearInterval(interval);
+        return init();
+      }
+
+      console.log(`No EMA crossing found!`);
+    }, OrderIntervalMin * 1000 * 60);
   }
-
-  // const response = await accountAPI.newOrderMarket("BTCUSDT", "SELL", 0.01);
-  // console.log(response);
-
-  // const closingPrice = (await marketAPI.checkPrice("BTCUSDT", "30m", 61)).map(
-  //   (el) => +el[4]
-  // );
-
-  // const currentEMA7 = TA.calculateEMA(7, closingPrice)[0];
-  // const currentEMA25 = TA.calculateEMA(25, closingPrice)[0];
-  // const currentNetEMA = currentEMA7 - currentEMA25;
-
-  // console.log(currentEMA7, currentEMA25, currentNetEMA);
-
-  // marketAPI
-  //   .checkPrice("BTCUSDT", "30m", 61)
-  //   .then((data) => data.map((el) => +el[4]))
-  //   .then((closingPriceArr) =>
-  //     console.log(TA.calculateEMA(7, closingPriceArr)[0])
-  //   );
 };
 
 init();
