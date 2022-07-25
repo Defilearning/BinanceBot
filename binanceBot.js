@@ -6,15 +6,15 @@ const TA = require("./technical_Indicator");
 // Init setting for 1st time
 let targetProfit = 0.013;
 let stopLoss = -0.01;
-let accountFiat = "BUSD";
+let accountFiat = "USDT";
 let accountMargin = "ISOLATED";
 let accountLeverage = 5;
-let tradePair = "ETHBUSD";
+let tradePair = "BTCUSDT";
 let positionPlaced;
 let accountPercentage = 1;
 
 let positionIntervalSec = 1;
-let OrderIntervalMin = 15;
+let OrderIntervalMin = 0.0167;
 
 accountAPI
   .initialMargin(tradePair, accountMargin)
@@ -68,23 +68,30 @@ const init = async () => {
 
           // If profit >= 1%, open order to close the position, reset Account Balance and Position Balance
           if ((positionPrice - currentPrice) / currentPrice >= targetProfit) {
-            await accountAPI.newOrderMarket(tradePair, "BUY", positionPlaced);
-            console.log(
-              `Profit earned: ${
-                (positionPrice - currentPrice) * positionPlaced
-              }`
-            );
-            clearInterval(interval);
-            return init();
+            accountAPI
+              .newOrderMarket(tradePair, "BUY", positionPlaced)
+              .then(() => {
+                console.log(
+                  `Profit earned: ${
+                    (positionPrice - currentPrice) * positionPlaced
+                  }`
+                );
+                positionPrice = positionAmt = 0;
+                clearInterval(interval);
+                return init();
+              });
           }
           if ((positionPrice - currentPrice) / currentPrice <= stopLoss) {
-            await accountAPI.newOrderMarket(tradePair, "BUY", positionPlaced);
-            console.log(
-              `Loss for: ${(positionPrice - currentPrice) * positionPlaced}`
-            );
-            positionPrice = positionAmt = 0;
-            clearInterval(interval);
-            return init();
+            accountAPI
+              .newOrderMarket(tradePair, "BUY", positionPlaced)
+              .then(() => {
+                console.log(
+                  `Loss for: ${(positionPrice - currentPrice) * positionPlaced}`
+                );
+                positionPrice = positionAmt = 0;
+                clearInterval(interval);
+                return init();
+              });
           }
         }
 
@@ -98,24 +105,30 @@ const init = async () => {
 
           // If profit >= 1%, open order to close the position, reset Account Balance and Position Balance
           if ((currentPrice - positionPrice) / positionPrice >= targetProfit) {
-            await accountAPI.newOrderMarket(tradePair, "SELL", positionPlaced);
-            console.log(
-              `Profit earned: ${
-                (currentPrice - positionPrice) * positionPlaced
-              }`
-            );
-            positionPrice = positionAmt = 0;
-            clearInterval(interval);
-            return init();
+            accountAPI
+              .newOrderMarket(tradePair, "SELL", positionPlaced)
+              .then(() => {
+                console.log(
+                  `Profit earned: ${
+                    (currentPrice - positionPrice) * positionPlaced
+                  }`
+                );
+                positionPrice = positionAmt = 0;
+                clearInterval(interval);
+                return init();
+              });
           }
           if ((currentPrice - positionPrice) / positionPrice <= stopLoss) {
-            await accountAPI.newOrderMarket(tradePair, "SELL", positionPlaced);
-            console.log(
-              `Loss for: ${(currentPrice - positionPrice) * positionPlaced}`
-            );
-            positionPrice = positionAmt = 0;
-            clearInterval(interval);
-            return init();
+            accountAPI
+              .newOrderMarket(tradePair, "SELL", positionPlaced)
+              .then(() => {
+                console.log(
+                  `Loss for: ${(currentPrice - positionPrice) * positionPlaced}`
+                );
+                positionPrice = positionAmt = 0;
+                clearInterval(interval);
+                return init();
+              });
           }
         }
       }, positionIntervalSec * 1000);
@@ -146,18 +159,28 @@ const init = async () => {
 
         // If prevEMA is -ve and currentEMA is +ve
         if (Math.sign(prevNetEMA) === -1 && Math.sign(currentNetEMA) === 1) {
-          await accountAPI.newOrderMarket(tradePair, "BUY", orderQuantity);
-          console.log(`Position placed: LONG ${orderQuantity} ${tradePair}`);
-          clearInterval(interval);
-          return init();
+          accountAPI
+            .newOrderMarket(tradePair, "BUY", orderQuantity)
+            .then(() => {
+              console.log(
+                `Position placed: LONG ${orderQuantity} ${tradePair}`
+              );
+              clearInterval(interval);
+              return init();
+            });
         }
 
         // If prevEMA is +ve and currentEMA is -ve
         if (Math.sign(prevNetEMA) === 1 && Math.sign(currentNetEMA) === -1) {
-          await accountAPI.newOrderMarket(tradePair, "SELL", orderQuantity);
-          console.log(`Position placed: SHORT ${orderQuantity} ${tradePair}`);
-          clearInterval(interval);
-          return init();
+          accountAPI
+            .newOrderMarket(tradePair, "SELL", orderQuantity)
+            .then(() => {
+              console.log(
+                `Position placed: SHORT ${orderQuantity} ${tradePair}`
+              );
+              clearInterval(interval);
+              return init();
+            });
         }
 
         console.log(`No EMA crossing found as at ${Date()}`);
