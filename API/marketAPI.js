@@ -8,7 +8,7 @@ const headers = {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Check BTC K-line
-exports.checkPrice = async (symbol, interval, slice = 1, limit = 500) => {
+exports.checkPrice = async (symbol, interval, limit = 1) => {
   try {
     const queryString = `symbol=${symbol}&interval=${interval}&limit=${limit}`;
 
@@ -17,7 +17,7 @@ exports.checkPrice = async (symbol, interval, slice = 1, limit = 500) => {
       url: `${process.env.TESTNET}/fapi/v1/klines?${queryString}`,
       headers,
     });
-    return response.data.reverse().slice(0, slice);
+    return response.data.reverse();
   } catch (err) {
     console.log(err);
   }
