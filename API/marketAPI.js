@@ -8,9 +8,9 @@ const headers = {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Check BTC K-line
-exports.checkPrice = async (symbol, interval, slice = 1) => {
+exports.checkPrice = async (symbol, interval, slice = 1, limit = 500) => {
   try {
-    const queryString = `symbol=${symbol}&interval=${interval}`;
+    const queryString = `symbol=${symbol}&interval=${interval}&limit=${limit}`;
 
     const response = await axios({
       method: "get",
