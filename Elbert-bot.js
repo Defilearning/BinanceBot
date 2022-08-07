@@ -7,13 +7,17 @@ const TA = require("./technical_Indicator");
 //-------------------------------------------------------------------------------------------------
 let accountFiat = "USDT";
 let accountMargin = "ISOLATED";
-let accountLeverage = 5;
+let accountLeverage = 20;
 let tradePair = "ETHUSDT";
-let accountPercentage = 1;
+
+let riskStopLossPrice = 1;
 
 let positionIntervalSec = 1;
 let OrderIntervalMin = 1;
 let loopStopCandleCounter = 7;
+let defaultStopLossPer = 0.01;
+let defaultTargetProfitPer = 0.015;
+
 let loopInterval, loopFinalPrice, targetProfitPrice, stopLossPrice;
 
 accountAPI
@@ -46,12 +50,6 @@ const init = async () => {
       return;
     }
 
-    // To calculate next order amount
-    let nextOrderPrice =
-      accountAvailableBalance * accountPercentage > 11
-        ? accountAvailableBalance * accountPercentage
-        : 11;
-
     // To set up current position price and current position quantity
     const position = (await accountAPI.checkPosition(tradePair))[0];
     let positionAmt = +position.positionAmt;
@@ -67,11 +65,13 @@ const init = async () => {
       //----------------------------------------------------------------------
       if (position.positionAmt.startsWith("-")) {
         // Set stop loss Price = entryPrice + (HighestPrice - entryPrice) === HIGHEST PRICE
-        stopLossPrice = loopFinalPrice;
+        stopLossPrice =
+          loopFinalPrice || positionPrice * (1 + defaultStopLossPer);
 
         // Set target profit Price = entryPrice - (HighestPrice - entryPrice) * 1.5
         targetProfitPrice =
-          positionPrice - (loopFinalPrice - positionPrice) * 1.5;
+          positionPrice - (loopFinalPrice - positionPrice) * 1.5 ||
+          positionPrice * (1 - defaultTargetProfitPer);
 
         // Set loop for target profit or stop loss
         loopInterval = setInterval(async () => {
@@ -83,8 +83,14 @@ const init = async () => {
           // If hit stop loss price
           //----------------------------------------------------------------------
           if (currentPrice >= stopLossPrice) {
-            //TOCHANGE: change to POST request
-            console.log(`New order submitted to cut loss!`);
+            // Fill market to close SHORT position
+            const orderResponse = await accountAPI.newOrderMarket(
+              tradePair,
+              "BUY",
+              positionPlaced
+            );
+
+            console.log(`Stop Loss: Quantity = ${orderResponse.origQty}`);
 
             // reset stop loss, target profit and loop final price
             stopLossPrice = targetProfitPrice = loopFinalPrice = "";
@@ -98,8 +104,14 @@ const init = async () => {
           // If hit target profit price
           //----------------------------------------------------------------------
           if (currentPrice <= targetProfitPrice) {
-            //TOCHANGE: change to POST request
-            console.log(`New order submitted to take profit!`);
+            // Fill market to close SHORT position
+            const orderResponse = await accountAPI.newOrderMarket(
+              tradePair,
+              "BUY",
+              positionPlaced
+            );
+
+            console.log(`Take Profit: Quantity = ${orderResponse.origQty}`);
 
             // reset stop loss, target profit and loop final price
             stopLossPrice = targetProfitPrice = loopFinalPrice = "";
@@ -108,6 +120,8 @@ const init = async () => {
             clearInterval(loopInterval);
             return init();
           }
+
+          console.log(`${currentPrice} not fit TP or SL`);
         }, 1000 * positionIntervalSec);
       }
 
@@ -116,11 +130,13 @@ const init = async () => {
       //----------------------------------------------------------------------
       if (positionAmt > 0) {
         // Set stop loss Price = entryPrice + (LowestPrice - entryPrice) === LOWEST PRICE
-        stopLossPrice = loopFinalPrice;
+        stopLossPrice =
+          loopFinalPrice || positionPrice * (1 - defaultStopLossPer);
 
         // Set target profit Price = entryPrice - (LowestPrice - entryPrice) * 1.5
         targetProfitPrice =
-          positionPrice - (loopFinalPrice - positionPrice) * 1.5;
+          positionPrice - (loopFinalPrice - positionPrice) * 1.5 ||
+          positionPrice * (1 + defaultTargetProfitPer);
 
         // Set loop for target profit or stop loss
         loopInterval = setInterval(async () => {
@@ -132,8 +148,14 @@ const init = async () => {
           // If hit stop loss price
           //----------------------------------------------------------------------
           if (currentPrice <= stopLossPrice) {
-            //TOCHANGE: change to POST request
-            console.log(`New order submitted to cut loss!`);
+            // Fill market to close LONG position
+            const orderResponse = await accountAPI.newOrderMarket(
+              tradePair,
+              "SELL",
+              positionPlaced
+            );
+
+            console.log(`Stop Loss: Quantity = ${orderResponse.origQty}`);
 
             // reset stop loss, target profit and loop final price
             stopLossPrice = targetProfitPrice = loopFinalPrice = "";
@@ -147,8 +169,14 @@ const init = async () => {
           // If hit target profit price
           //----------------------------------------------------------------------
           if (currentPrice >= targetProfitPrice) {
-            //TOCHANGE: change to POST request
-            console.log(`New order submitted to take profit!`);
+            // Fill market to close LONG position
+            const orderResponse = await accountAPI.newOrderMarket(
+              tradePair,
+              "SELL",
+              positionPlaced
+            );
+
+            console.log(`Target Profit: Quantity = ${orderResponse.origQty}`);
 
             // reset stop loss, target profit and loop final price
             stopLossPrice = targetProfitPrice = loopFinalPrice = "";
@@ -157,6 +185,8 @@ const init = async () => {
             clearInterval(loopInterval);
             return init();
           }
+
+          console.log(`${currentPrice} not fit TP or SL`);
         }, 1000 * positionIntervalSec);
       }
     }
@@ -173,26 +203,31 @@ const init = async () => {
       let currentClosingPrice = closingPrice1d[0];
       let currentEMA1d = TA.calculateEMA(200, closingPrice1d)[0];
 
-      // 2nd criteria - 1m EMA240
-      const closingPrice1m = (
-        await marketAPI.checkPrice(tradePair, "1m", 470)
+      // 2nd criteria - 4h EMA50
+      const closingPrice4h = (
+        await marketAPI.checkPrice(tradePair, "4h", 150)
       ).map((el) => +el[4]);
-      let currentEMA1m = TA.calculateEMA(240, closingPrice1m)[0];
+      let currentEMA4h = TA.calculateEMA(50, closingPrice4h)[0];
 
       // 3rd criteria - 1m RSI
-      let currentRSI1m = TA.calculateRSI(14, closingPrice1m);
+      const closingPriceRSI = (
+        await marketAPI.checkPrice(tradePair, "1m", 150)
+      ).map((el) => +el[4]);
+      let currentRSI1m = TA.calculateRSI(14, closingPriceRSI);
 
       //----------------------------------------------------------------------
       // To match 1st and 2nd criteria:
       // Above 1d EMA && 1m EMA && global EMA > 1.005 && RSI 1m < 30
       //----------------------------------------------------------------------
       if (
-        currentClosingPrice > currentEMA1d &&
-        currentClosingPrice > currentEMA1m &&
-        currentClosingPrice > currentEMA1d * 1.005 &&
-        currentRSI1m < 30
+        // TOCHANGE:
+        // currentClosingPrice > currentEMA1d &&
+        currentClosingPrice > currentEMA4h * 1.005 &&
+        currentRSI1m[0] < 30
       ) {
-        console.log(`Criteria to enter 7 candle loop for LONG POSITION:-`);
+        console.log(
+          `${new Date()} - Criteria to enter ${loopStopCandleCounter} candle loop for LONG POSITION:-`
+        );
         // To set up loop
         let loopCounter = 1;
         loopInterval = setInterval(async () => {
@@ -201,7 +236,7 @@ const init = async () => {
             clearInterval(loopInterval);
             loopFinalPrice = "";
             console.log(
-              `7 candle has passed and no order made, return to watch mode!`
+              `${loopStopCandleCounter} candle has passed and no order made, return to watch mode!`
             );
             return init();
           }
@@ -217,15 +252,49 @@ const init = async () => {
           let loopCurrentEMA1m = TA.calculateEMA(9, loopClosingPriceArr1m)[0];
 
           // to set lowest price(stop loss price)
-          loopFinalPrice = loopCheckPrice1m.slice(0, 1)[0][3];
+          loopFinalPrice =
+            loopCheckPrice1m.slice(0, 1)[0][3] < loopFinalPrice
+              ? loopCheckPrice1m.slice(0, 1)[0][3]
+              : loopFinalPrice;
           const loopClosingPrice1m = loopCheckPrice1m.slice(0, 1)[0][4];
 
           console.log(
-            `${new Date()} this is ${loopCounter} runtime: EMA9=${loopCurrentEMA1m}, Lowest Price = ${loopFinalPrice}, Closing Price = ${loopClosingPrice1m}`
+            `This is ${loopCounter} runtime: EMA9=${loopCurrentEMA1m}, Lowest Price = ${loopFinalPrice}, Closing Price = ${loopClosingPrice1m}`
           );
 
-          // to check if closing price below EMA9, if Yes, open SHORT order
+          //----------------------------------------------------------------------
+          // to void loop if closing price is > Global EMA 240 * 0.995
+          //----------------------------------------------------------------------
+          if (loopFinalPrice < currentEMA4h * 1.005) {
+            console.log(
+              `Runtime has stopped due to closing price is closed to 0.5% of Global EMA`
+            );
+            loopFinalPrice = "";
+            clearInterval(loopInterval);
+            return init();
+          }
+
+          //----------------------------------------------------------------------
+          // to check if closing price below EMA9, if Yes, open LONG order
+          //----------------------------------------------------------------------
           if (loopClosingPrice1m > loopCurrentEMA1m) {
+            // Calculate Stop Loss percentage
+            let stopLossPercentage =
+              (loopClosingPrice1m - loopFinalPrice) / loopClosingPrice1m;
+
+            // To calculate 1R (Risk and reward)
+            let nextOrderPrice = riskStopLossPrice / stopLossPercentage;
+
+            // If order price < 11, order price === 11
+            if (nextOrderPrice < 11) {
+              nextOrderPrice = 11;
+            }
+
+            // If order price > account balance * leverage, order price === account balance * account leverage
+            if (nextOrderPrice > accountAvailableBalance * accountLeverage) {
+              nextOrderPrice = accountAvailableBalance * accountLeverage;
+            }
+
             // To calculate order quantity
             let orderQuantity = (nextOrderPrice / loopClosingPrice1m).toFixed(
               3
@@ -239,7 +308,7 @@ const init = async () => {
             );
 
             console.log(
-              `${orderResponse.positionSide}: Average Price = ${orderResponse.avgPrice}, Quantity = ${orderResponse.origQty}`
+              `${orderResponse.positionSide}: Quantity = ${orderResponse.origQty}`
             );
 
             clearInterval(loopInterval);
@@ -255,12 +324,14 @@ const init = async () => {
       //Below 1d EMA && 1m EMA && global EMA < 99.5% && RSI 1m >70
       //----------------------------------------------------------------------
       if (
-        currentClosingPrice < currentEMA1d &&
-        currentClosingPrice < currentEMA1m &&
-        currentClosingPrice < currentEMA1d * 0.995 &&
-        currentRSI1m > 70
+        //TOCHANGE:
+        // currentClosingPrice < currentEMA1d &&
+        currentClosingPrice < currentEMA4h * 0.995 &&
+        currentRSI1m[0] > 70
       ) {
-        console.log(`Criteria to enter 7 candle loop for SHORT POSITION:-`);
+        console.log(
+          `${new Date()} - Criteria to enter ${loopStopCandleCounter} candle loop for SHORT POSITION:-`
+        );
         // To set up loop
         let loopCounter = 1;
         loopInterval = setInterval(async () => {
@@ -269,7 +340,7 @@ const init = async () => {
             clearInterval(loopInterval);
             loopFinalPrice = "";
             console.log(
-              `7 candle has passed and no order made, return to watch mode!`
+              `${loopStopCandleCounter} candle has passed and no order made, return to watch mode!`
             );
             return init();
           }
@@ -285,15 +356,49 @@ const init = async () => {
           let loopCurrentEMA1m = TA.calculateEMA(9, loopClosingPriceArr1m)[0];
 
           // to set highest price(stop loss price)
-          loopFinalPrice = loopCheckPrice1m.slice(0, 1)[0][2];
+          loopFinalPrice =
+            loopCheckPrice1m.slice(0, 1)[0][2] > loopFinalPrice
+              ? loopCheckPrice1m.slice(0, 1)[0][2]
+              : loopFinalPrice;
           const loopClosingPrice1m = loopCheckPrice1m.slice(0, 1)[0][4];
 
           console.log(
-            `${new Date()} this is ${loopCounter} runtime: EMA9=${loopCurrentEMA1m}, Highest Price = ${loopFinalPrice}, Closing Price = ${loopClosingPrice1m}`
+            `This is ${loopCounter} runtime: EMA9=${loopCurrentEMA1m}, Highest Price = ${loopFinalPrice}, Closing Price = ${loopClosingPrice1m}`
           );
 
+          //----------------------------------------------------------------------
+          // to void loop if closing price is > Global EMA 240 * 0.995
+          //----------------------------------------------------------------------
+          if (loopFinalPrice > currentEMA4h * 0.995) {
+            console.log(
+              `Runtime has stopped due to closing price is closed to 0.5% of Global EMA`
+            );
+            loopFinalPrice = "";
+            clearInterval(loopInterval);
+            return init();
+          }
+
+          //----------------------------------------------------------------------
           // to check if closing price below EMA9, if Yes, open SHORT order
+          //----------------------------------------------------------------------
           if (loopClosingPrice1m < loopCurrentEMA1m) {
+            // Calculate Stop Loss percentage
+            let stopLossPercentage =
+              (loopFinalPrice - loopClosingPrice1m) / loopClosingPrice1m;
+
+            // To calculate 1R (Risk and reward)
+            let nextOrderPrice = riskStopLossPrice / stopLossPercentage;
+
+            // If order price < 11, order price === 11
+            if (nextOrderPrice < 11) {
+              nextOrderPrice = 11;
+            }
+
+            // If order price > account balance * leverage, order price === account balance * account leverage
+            if (nextOrderPrice > accountAvailableBalance * accountLeverage) {
+              nextOrderPrice = accountAvailableBalance * accountLeverage;
+            }
+
             // To calculate order quantity
             let orderQuantity = (nextOrderPrice / loopClosingPrice1m).toFixed(
               3
@@ -307,7 +412,7 @@ const init = async () => {
             );
 
             console.log(
-              `${orderResponse.positionSide}: Average Price = ${orderResponse.avgPrice}, Quantity = ${orderResponse.origQty}`
+              `${orderResponse.positionSide}: Quantity = ${orderResponse.origQty}`
             );
 
             clearInterval(loopInterval);
@@ -329,12 +434,12 @@ const init = async () => {
         return init();
       }, 1000 * 60 * OrderIntervalMin);
     }
-
-    //////////////////////////////////////////////////////////////////////////////
   } catch (err) {
     console.log(err);
-    // console.log(`--System down, restarting:--`);
-    // return init();
+    console.log(`----------------------------------------`);
+    console.log(`System down, restarting:-`);
+    console.log(`----------------------------------------`);
+    return init();
   }
 };
 
