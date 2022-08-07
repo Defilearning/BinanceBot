@@ -253,8 +253,8 @@ const init = async () => {
 
           // to set lowest price(stop loss price)
           loopFinalPrice =
-            loopCheckPrice1m.slice(0, 1)[0][3] < loopFinalPrice
-              ? loopCheckPrice1m.slice(0, 1)[0][3]
+            +loopCheckPrice1m.slice(0, 1)[0][3] < loopFinalPrice
+              ? +loopCheckPrice1m.slice(0, 1)[0][3]
               : loopFinalPrice;
           const loopClosingPrice1m = loopCheckPrice1m.slice(0, 1)[0][4];
 
@@ -357,8 +357,8 @@ const init = async () => {
 
           // to set highest price(stop loss price)
           loopFinalPrice =
-            loopCheckPrice1m.slice(0, 1)[0][2] > loopFinalPrice
-              ? loopCheckPrice1m.slice(0, 1)[0][2]
+            +loopCheckPrice1m.slice(0, 1)[0][2] > loopFinalPrice
+              ? +loopCheckPrice1m.slice(0, 1)[0][2]
               : loopFinalPrice;
           const loopClosingPrice1m = loopCheckPrice1m.slice(0, 1)[0][4];
 
@@ -381,7 +381,7 @@ const init = async () => {
           //----------------------------------------------------------------------
           // to check if closing price below EMA9, if Yes, open SHORT order
           //----------------------------------------------------------------------
-          if (loopClosingPrice1m < loopCurrentEMA1m) {
+          else if (loopClosingPrice1m < loopCurrentEMA1m) {
             // Calculate Stop Loss percentage
             let stopLossPercentage =
               (loopFinalPrice - loopClosingPrice1m) / loopClosingPrice1m;
@@ -422,20 +422,20 @@ const init = async () => {
           // To increase loop counter if criteria not fit
           loopCounter++;
         }, 1000 * 60 * OrderIntervalMin);
+      } else {
+        //----------------------------------------------------------------------
+        // If there is no Criteria met at all, return to init()
+        //----------------------------------------------------------------------
+        setTimeout(() => {
+          console.log(
+            `None criteria fit as at ${new Date()}, return to watch mode!`
+          );
+          return init();
+        }, 1000 * 60 * OrderIntervalMin);
       }
-
-      //----------------------------------------------------------------------
-      // If there is no Criteria met at all, return to init()
-      //----------------------------------------------------------------------
-      setTimeout(() => {
-        console.log(
-          `None criteria fit as at ${new Date()}, return to watch mode!`
-        );
-        return init();
-      }, 1000 * 60 * OrderIntervalMin);
     }
   } catch (err) {
-    console.log(err);
+    console.log(err.response.msg);
     console.log(`----------------------------------------`);
     console.log(`System down, restarting:-`);
     console.log(`----------------------------------------`);
