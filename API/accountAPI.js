@@ -21,7 +21,7 @@ exports.checkIncome = async () => {
     });
     return response.data;
   } catch (err) {
-    console.log(err);
+    throw new Error(err.response.data.msg);
   }
 };
 
@@ -38,7 +38,7 @@ exports.checkFutureBalance = async () => {
     });
     return response.data;
   } catch (err) {
-    console.log(err);
+    throw new Error(err.response.data.msg);
   }
 };
 
@@ -55,7 +55,7 @@ exports.checkPosition = async (symbol) => {
     });
     return response.data;
   } catch (err) {
-    console.log(err);
+    throw new Error(err.response.data.msg);
   }
 };
 
@@ -72,7 +72,7 @@ exports.initialMargin = async (symbol, marginType) => {
     });
     return `Account margin has set to ISOLATED!`;
   } catch (err) {
-    return err.response.data.msg;
+    throw new Error(err.response.data.msg);
   }
 };
 
@@ -89,7 +89,7 @@ exports.initialLeverage = async (symbol, leverage) => {
     });
     return `Account leverge has set to ${response.data.leverage}!`;
   } catch (err) {
-    return err;
+    throw new Error(err.response.data.msg);
   }
 };
 
@@ -106,7 +106,7 @@ exports.newOrderLimit = async (symbol, side, timeInForce, quantity, price) => {
     });
     return response.data;
   } catch (err) {
-    console.log(err);
+    throw new Error(err.response.data.msg);
   }
 };
 
@@ -123,6 +123,6 @@ exports.newOrderMarket = async (symbol, side, quantity) => {
     });
     return response.data;
   } catch (err) {
-    console.log(err);
+    throw new Error(err.response.data.msg);
   }
 };

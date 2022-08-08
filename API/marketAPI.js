@@ -19,6 +19,6 @@ exports.checkPrice = async (symbol, interval, limit = 1) => {
     });
     return response.data.reverse();
   } catch (err) {
-    console.log(err);
+    throw new Error(err.response.data.msg);
   }
 };

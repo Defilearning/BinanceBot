@@ -252,12 +252,16 @@ const init = async () => {
           let loopCurrentEMA1m = TA.calculateEMA(9, loopClosingPriceArr1m)[0];
 
           // to set lowest price(stop loss price)
-          loopFinalPrice =
-            +loopCheckPrice1m.slice(0, 1)[0][3] < loopFinalPrice
-              ? +loopCheckPrice1m.slice(0, 1)[0][3]
-              : loopFinalPrice;
-          const loopClosingPrice1m = loopCheckPrice1m.slice(0, 1)[0][4];
+          if (loopCounter === 1) {
+            loopFinalPrice = +loopCheckPrice1m.slice(0, 1)[0][3];
+          } else {
+            loopFinalPrice =
+              +loopCheckPrice1m.slice(0, 1)[0][3] < loopFinalPrice
+                ? +loopCheckPrice1m.slice(0, 1)[0][3]
+                : loopFinalPrice;
+          }
 
+          const loopClosingPrice1m = loopCheckPrice1m.slice(0, 1)[0][4];
           console.log(
             `This is ${loopCounter} runtime: EMA9=${loopCurrentEMA1m}, Lowest Price = ${loopFinalPrice}, Closing Price = ${loopClosingPrice1m}`
           );
@@ -323,7 +327,7 @@ const init = async () => {
       //----------------------------------------------------------------------
       //Below 1d EMA && 1m EMA && global EMA < 99.5% && RSI 1m >70
       //----------------------------------------------------------------------
-      if (
+      else if (
         //TOCHANGE:
         // currentClosingPrice < currentEMA1d &&
         currentClosingPrice < currentEMA4h * 0.995 &&
@@ -356,12 +360,17 @@ const init = async () => {
           let loopCurrentEMA1m = TA.calculateEMA(9, loopClosingPriceArr1m)[0];
 
           // to set highest price(stop loss price)
-          loopFinalPrice =
-            +loopCheckPrice1m.slice(0, 1)[0][2] > loopFinalPrice
-              ? +loopCheckPrice1m.slice(0, 1)[0][2]
-              : loopFinalPrice;
-          const loopClosingPrice1m = loopCheckPrice1m.slice(0, 1)[0][4];
 
+          if (loopCounter === 1) {
+            loopFinalPrice = +loopCheckPrice1m.slice(0, 1)[0][2];
+          } else {
+            loopFinalPrice =
+              +loopCheckPrice1m.slice(0, 1)[0][2] > loopFinalPrice
+                ? +loopCheckPrice1m.slice(0, 1)[0][2]
+                : loopFinalPrice;
+          }
+
+          const loopClosingPrice1m = loopCheckPrice1m.slice(0, 1)[0][4];
           console.log(
             `This is ${loopCounter} runtime: EMA9=${loopCurrentEMA1m}, Highest Price = ${loopFinalPrice}, Closing Price = ${loopClosingPrice1m}`
           );
@@ -381,7 +390,7 @@ const init = async () => {
           //----------------------------------------------------------------------
           // to check if closing price below EMA9, if Yes, open SHORT order
           //----------------------------------------------------------------------
-          else if (loopClosingPrice1m < loopCurrentEMA1m) {
+          if (loopClosingPrice1m < loopCurrentEMA1m) {
             // Calculate Stop Loss percentage
             let stopLossPercentage =
               (loopFinalPrice - loopClosingPrice1m) / loopClosingPrice1m;
@@ -435,7 +444,7 @@ const init = async () => {
       }
     }
   } catch (err) {
-    console.log(err.response.msg);
+    console.log(err);
     console.log(`----------------------------------------`);
     console.log(`System down, restarting:-`);
     console.log(`----------------------------------------`);
