@@ -1,6 +1,7 @@
 const accountAPI = require("./API/accountAPI");
 const marketAPI = require("./API/marketAPI");
 const TA = require("./technical_Indicator");
+const fs = require("fs");
 
 //-------------------------------------------------------------------------------------------------
 // Global setting for 1st time
@@ -261,7 +262,7 @@ const init = async () => {
                 : loopFinalPrice;
           }
 
-          const loopClosingPrice1m = loopCheckPrice1m.slice(0, 1)[0][4];
+          const loopClosingPrice1m = +loopCheckPrice1m.slice(0, 1)[0][4];
           console.log(
             `This is ${loopCounter} runtime: EMA9=${loopCurrentEMA1m}, Lowest Price = ${loopFinalPrice}, Closing Price = ${loopClosingPrice1m}`
           );
@@ -370,7 +371,7 @@ const init = async () => {
                 : loopFinalPrice;
           }
 
-          const loopClosingPrice1m = loopCheckPrice1m.slice(0, 1)[0][4];
+          const loopClosingPrice1m = +loopCheckPrice1m.slice(0, 1)[0][4];
           console.log(
             `This is ${loopCounter} runtime: EMA9=${loopCurrentEMA1m}, Highest Price = ${loopFinalPrice}, Closing Price = ${loopClosingPrice1m}`
           );
@@ -378,6 +379,7 @@ const init = async () => {
           //----------------------------------------------------------------------
           // to void loop if closing price is > Global EMA 240 * 0.995
           //----------------------------------------------------------------------
+
           if (loopFinalPrice > currentEMA4h * 0.995) {
             console.log(
               `Runtime has stopped due to closing price is closed to 0.5% of Global EMA`
@@ -444,11 +446,16 @@ const init = async () => {
       }
     }
   } catch (err) {
-    console.log(err);
+    fs.appendFileSync(
+      "BinanceError.txt",
+      `\n${new Date()}: Error - ${err.toString()}, ${err.stack.toString()}\n`
+    );
     console.log(`----------------------------------------`);
-    console.log(`System down, restarting:-`);
+    console.log(`System down, restarting in 30 seconds:-`);
     console.log(`----------------------------------------`);
-    return init();
+    setTimeout(() => {
+      return init();
+    }, 1000 * 30);
   }
 };
 
