@@ -72,7 +72,7 @@ exports.initialMargin = async (symbol, marginType) => {
     });
     return `Account margin has set to ISOLATED!`;
   } catch (err) {
-    throw new Error(err.response.data.msg);
+    return err.response.data.msg;
   }
 };
 
@@ -89,7 +89,7 @@ exports.initialLeverage = async (symbol, leverage) => {
     });
     return `Account leverge has set to ${response.data.leverage}!`;
   } catch (err) {
-    throw new Error(err.response.data.msg);
+    return err.response.data.msg;
   }
 };
 
