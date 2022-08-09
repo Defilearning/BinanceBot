@@ -252,17 +252,26 @@ const init = async () => {
           const loopClosingPriceArr1m = loopCheckPrice1m.map((el) => +el[4]);
           let loopCurrentEMA1m = TA.calculateEMA(9, loopClosingPriceArr1m)[0];
 
-          // to set lowest price(stop loss price)
+          // Map array with the lowest price for current and prev candle
+          const loopLowestPriceArr1m = loopCheckPrice1m.map((el) => +el[3]);
+
+          // to set lowest price for the 1st candle(stop loss price)
           if (loopCounter === 1) {
-            loopFinalPrice = +loopCheckPrice1m.slice(0, 1)[0][3];
+            loopFinalPrice = loopLowestPriceArr1m[0];
           } else {
+            // to set lowest price for the prev candle(stop loss price)
             loopFinalPrice =
-              +loopCheckPrice1m.slice(0, 1)[0][3] < loopFinalPrice
-                ? +loopCheckPrice1m.slice(0, 1)[0][3]
+              loopLowestPriceArr1m[1] < loopFinalPrice
+                ? loopLowestPriceArr1m[1]
                 : loopFinalPrice;
           }
 
-          const loopClosingPrice1m = +loopCheckPrice1m.slice(0, 1)[0][4];
+          // to set lowest price if current candle < prev candle
+          if (loopLowestPriceArr1m[0] < loopFinalPrice) {
+            loopFinalPrice = loopLowestPriceArr1m[0];
+          }
+
+          const loopClosingPrice1m = loopClosingPriceArr1m[0];
           console.log(
             `This is ${loopCounter} runtime: EMA9=${loopCurrentEMA1m}, Lowest Price = ${loopFinalPrice}, Closing Price = ${loopClosingPrice1m}`
           );
@@ -360,18 +369,26 @@ const init = async () => {
           const loopClosingPriceArr1m = loopCheckPrice1m.map((el) => +el[4]);
           let loopCurrentEMA1m = TA.calculateEMA(9, loopClosingPriceArr1m)[0];
 
-          // to set highest price(stop loss price)
+          // Map array with the highest price for current and prev candle
+          const loopHighestPriceArr1m = loopCheckPrice1m.map((el) => +el[2]);
 
+          // to set highest price for the 1st candle(stop loss price)
           if (loopCounter === 1) {
-            loopFinalPrice = +loopCheckPrice1m.slice(0, 1)[0][2];
+            loopFinalPrice = loopHighestPriceArr1m[0];
           } else {
+            // to set highest price for prev candle(stop loss price)
             loopFinalPrice =
-              +loopCheckPrice1m.slice(0, 1)[0][2] > loopFinalPrice
-                ? +loopCheckPrice1m.slice(0, 1)[0][2]
+              loopHighestPriceArr1m[1] > loopFinalPrice
+                ? loopHighestPriceArr1m[1]
                 : loopFinalPrice;
           }
 
-          const loopClosingPrice1m = +loopCheckPrice1m.slice(0, 1)[0][4];
+          // to set highest price if current candle > prev candle
+          if (loopHighestPriceArr1m[0] > loopFinalPrice) {
+            loopFinalPrice = loopHighestPriceArr1m[0];
+          }
+
+          const loopClosingPrice1m = loopClosingPriceArr1m[0];
           console.log(
             `This is ${loopCounter} runtime: EMA9=${loopCurrentEMA1m}, Highest Price = ${loopFinalPrice}, Closing Price = ${loopClosingPrice1m}`
           );
