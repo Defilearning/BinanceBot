@@ -12,7 +12,7 @@
   "version": "1.0.0",
   "main": "binanceBot.js",
   "scripts": {
-    "start": "node binanceBot.js"
+    "start": "node Elbert-bot.js"
   },
   "repository": {
     "type": "git",
