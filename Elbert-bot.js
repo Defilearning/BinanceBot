@@ -40,6 +40,9 @@ accountAPI
 //-------------------------------------------------------------------------------------------------
 const init = async () => {
   try {
+    // Set up function start time to trace function timeframe
+    const startTime = Date.now();
+
     // 1)Set up Account Balance, preEMA and Position Balance (if available)
     // Check account balance
     let accountAvailableBalance = +(await accountAPI.checkFutureBalance()).find(
@@ -198,12 +201,12 @@ const init = async () => {
     //----------------------------------------------------------------------
     if (positionAmt === 0) {
       // 1st criteria - 1d EMA 200
-      const closingPrice1d = (
-        await marketAPI.checkPrice(tradePair, "1d", 485)
-      ).map((el) => +el[4]);
+      // TOCHANGE:
+      // const closingPrice1d = (
+      //   await marketAPI.checkPrice(tradePair, "1d", 485)
+      // ).map((el) => +el[4]);
 
-      let currentClosingPrice = closingPrice1d[0];
-      let currentEMA1d = TA.calculateEMA(200, closingPrice1d)[0];
+      // let currentEMA1d = TA.calculateEMA(200, closingPrice1d)[0]; // TOCHANGE:
 
       // 2nd criteria - 4h EMA50
       const closingPrice4h = (
@@ -213,8 +216,9 @@ const init = async () => {
 
       // 3rd criteria - 1m RSI
       const closingPriceRSI = (
-        await marketAPI.checkPrice(tradePair, "1m", 150)
+        await marketAPI.checkPrice(tradePair, "1m", 50)
       ).map((el) => +el[4]);
+      let currentClosingPrice = closingPriceRSI[0];
       let currentRSI1m = TA.calculateRSI(14, closingPriceRSI);
 
       //----------------------------------------------------------------------
@@ -230,7 +234,8 @@ const init = async () => {
         console.log(
           `${new Date()} - Criteria to enter ${loopStopCandleCounter} candle loop for LONG POSITION:-`
         );
-        // To set up loop
+        // To set up loop & function end time
+        let endTime;
         let loopCounter = 1;
         loopInterval = setInterval(async () => {
           // If loop > N times, clear the loop, global loop final price and return init
@@ -272,6 +277,24 @@ const init = async () => {
             loopFinalPrice = loopLowestPriceArr1m[0];
           }
 
+          //----------------------------------------------------------------------
+          // to reset loop counter if RSI is continuously less than 30
+          //----------------------------------------------------------------------
+          const loopPriceRSI = (
+            await marketAPI.checkPrice(tradePair, "1m", 50)
+          ).map((el) => +el[4]);
+          let loopRSI1m = TA.calculateRSI(14, loopPriceRSI);
+
+          if (loopRSI1m[0] < 30 && loopCounter > 1) {
+            loopCounter = 1;
+          }
+          console.log(
+            `Current RSI: ${loopRSI1m[0]} is below 30, hence loop counter reset!`
+          );
+
+          //----------------------------------------------------------------------
+          // to log current runtime and all the info
+          //----------------------------------------------------------------------
           const loopClosingPrice1m = loopClosingPriceArr1m[0];
           console.log(
             `This is ${loopCounter} runtime: EMA9=${loopCurrentEMA1m}, Lowest Price = ${loopFinalPrice}, Closing Price = ${loopClosingPrice1m}`
@@ -337,9 +360,12 @@ const init = async () => {
             return init();
           }
 
+          // To set function end time
+          endTime = Date.now();
+
           // To increase loop counter if criteria not fit
           loopCounter++;
-        }, 1000 * 60 * OrderIntervalMin);
+        }, 1000 * 60 * OrderIntervalMin - (endTime - startTime));
       }
 
       //----------------------------------------------------------------------
@@ -354,7 +380,8 @@ const init = async () => {
         console.log(
           `${new Date()} - Criteria to enter ${loopStopCandleCounter} candle loop for SHORT POSITION:-`
         );
-        // To set up loop
+        // To set up loop & function end time
+        let endTime;
         let loopCounter = 1;
         loopInterval = setInterval(async () => {
           // If loop > N times, clear the loop, global loop final price and return init
@@ -396,6 +423,24 @@ const init = async () => {
             loopFinalPrice = loopHighestPriceArr1m[0];
           }
 
+          //----------------------------------------------------------------------
+          // to reset loop counter if RSI is continuously less than 30
+          //----------------------------------------------------------------------
+          const loopPriceRSI = (
+            await marketAPI.checkPrice(tradePair, "1m", 50)
+          ).map((el) => +el[4]);
+          let loopRSI1m = TA.calculateRSI(14, loopPriceRSI);
+
+          if (loopRSI1m[0] > 70 && loopCounter > 1) {
+            loopCounter = 1;
+          }
+          console.log(
+            `Current RSI: ${loopRSI1m[0]} is above 70, hence loop counter reset!`
+          );
+
+          //----------------------------------------------------------------------
+          // to log current runtime and all the info
+          //----------------------------------------------------------------------
           const loopClosingPrice1m = loopClosingPriceArr1m[0];
           console.log(
             `This is ${loopCounter} runtime: EMA9=${loopCurrentEMA1m}, Highest Price = ${loopFinalPrice}, Closing Price = ${loopClosingPrice1m}`
@@ -462,9 +507,12 @@ const init = async () => {
             return init();
           }
 
+          // To set function end time
+          endTime = Date.now();
+
           // To increase loop counter if criteria not fit
           loopCounter++;
-        }, 1000 * 60 * OrderIntervalMin);
+        }, 1000 * 60 * OrderIntervalMin - (endTime - startTime));
       } else {
         //----------------------------------------------------------------------
         // If there is no Criteria met at all, return to init()
@@ -483,11 +531,11 @@ const init = async () => {
       `\n${new Date()}: Error - ${err.toString()}, ${err.stack.toString()}\n`
     );
     console.log(`----------------------------------------`);
-    console.log(`System down, restarting in 30 seconds:-`);
+    console.log(`System down, restarting in 5 seconds:-`);
     console.log(`----------------------------------------`);
     setTimeout(() => {
       return init();
-    }, 1000 * 30);
+    }, 1000 * 5);
   }
 };
 
