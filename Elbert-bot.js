@@ -40,6 +40,9 @@ accountAPI
 //-------------------------------------------------------------------------------------------------
 const init = async () => {
   try {
+    // Set up function start time to trace function timeframe
+    const startTime = Date.now();
+
     // 1)Set up Account Balance, preEMA and Position Balance (if available)
     // Check account balance
     let accountAvailableBalance = +(await accountAPI.checkFutureBalance()).find(
@@ -231,13 +234,10 @@ const init = async () => {
         console.log(
           `${new Date()} - Criteria to enter ${loopStopCandleCounter} candle loop for LONG POSITION:-`
         );
-        // To set up loop & function start time and end time
-        let startTime, endTime;
+        // To set up loop & function end time
+        let endTime;
         let loopCounter = 1;
         loopInterval = setInterval(async () => {
-          // Set up start Time
-          startTime = Date.now();
-
           // If loop > N times, clear the loop, global loop final price and return init
           if (loopCounter === loopStopCandleCounter + 1) {
             clearInterval(loopInterval);
@@ -380,13 +380,10 @@ const init = async () => {
         console.log(
           `${new Date()} - Criteria to enter ${loopStopCandleCounter} candle loop for SHORT POSITION:-`
         );
-        // To set up loop & function start time and end time
-        let startTime, endTime;
+        // To set up loop & function end time
+        let endTime;
         let loopCounter = 1;
         loopInterval = setInterval(async () => {
-          // Set up start time
-          startTime = Date.now();
-
           // If loop > N times, clear the loop, global loop final price and return init
           if (loopCounter === loopStopCandleCounter + 1) {
             clearInterval(loopInterval);
