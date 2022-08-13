@@ -18,7 +18,6 @@ let OrderIntervalMin = 1;
 let loopStopCandleCounter = 7;
 let defaultStopLossPer = 0.01;
 let defaultTargetProfitPer = 0.015;
-let lowestStopLossPer = 0.003;
 
 let loopInterval, loopFinalPrice, targetProfitPrice, stopLossPrice;
 
@@ -332,16 +331,9 @@ const init = async () => {
               nextOrderPrice = 11;
             }
 
-            // If stop loss percentage < lowest stop loss percentage, return init()
-            if (stopLossPercentage < lowestStopLossPer) {
-              console.log(
-                `Runtime has stopped due to stop loss percentage < ${
-                  lowestStopLossPer * 100
-                }% - Current percentage - ${stopLossPercentage * 100}%`
-              );
-              loopFinalPrice = "";
-              clearInterval(loopInterval);
-              return init();
+            // If order price > account balance * leverage, order price === account balance * account leverage
+            if (nextOrderPrice > accountAvailableBalance * accountLeverage) {
+              nextOrderPrice = accountAvailableBalance * accountLeverage;
             }
 
             // To calculate order quantity
@@ -482,16 +474,9 @@ const init = async () => {
               nextOrderPrice = 11;
             }
 
-            // If stop loss percentage < lowest stop loss percentage, return init()
-            if (stopLossPercentage < lowestStopLossPer) {
-              console.log(
-                `Runtime has stopped due to stop loss percentage < ${
-                  lowestStopLossPer * 100
-                }% - Current percentage - ${stopLossPercentage * 100}%`
-              );
-              loopFinalPrice = "";
-              clearInterval(loopInterval);
-              return init();
+            // If order price > account balance * leverage, order price === account balance * account leverage
+            if (nextOrderPrice > accountAvailableBalance * accountLeverage) {
+              nextOrderPrice = accountAvailableBalance * accountLeverage;
             }
 
             // To calculate order quantity
