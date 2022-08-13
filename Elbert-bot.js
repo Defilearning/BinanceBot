@@ -197,6 +197,10 @@ const init = async () => {
     // IF THERE IS NO POSITION
     //----------------------------------------------------------------------
     if (positionAmt === 0) {
+      // Set up function start time and end time
+      let startTime = Date.now();
+      let endTime;
+
       // 1st criteria - 1d EMA 200
       // TOCHANGE:
       // const closingPrice1d = (
@@ -231,12 +235,12 @@ const init = async () => {
         console.log(
           `${new Date()} - Criteria to enter ${loopStopCandleCounter} candle loop for LONG POSITION:-`
         );
-        // To set up loop & function start time and end time
-        let startTime, endTime;
+        // To set up loop counter & loop start time and  end time
+        let loopStartTime, loopEndTime;
         let loopCounter = 1;
         loopInterval = setInterval(async () => {
-          // Set up start Time
-          startTime = Date.now();
+          // Set up loop start time
+          loopStartTime = Date.now();
 
           // If loop > N times, clear the loop, global loop final price and return init
           if (loopCounter === loopStopCandleCounter + 1) {
@@ -361,11 +365,11 @@ const init = async () => {
           }
 
           // To set function end time
-          endTime = Date.now();
+          loopEndTime = Date.now();
 
           // To increase loop counter if criteria not fit
           loopCounter++;
-        }, 1000 * 60 * OrderIntervalMin - (endTime - startTime));
+        }, 1000 * 60 * OrderIntervalMin - (loopEndTime - loopStartTime));
       }
 
       //----------------------------------------------------------------------
@@ -380,12 +384,12 @@ const init = async () => {
         console.log(
           `${new Date()} - Criteria to enter ${loopStopCandleCounter} candle loop for SHORT POSITION:-`
         );
-        // To set up loop & function start time and end time
-        let startTime, endTime;
+        // To set up loop counter & loop start time and end time
+        let loopStartTime, loopEndTime;
         let loopCounter = 1;
         loopInterval = setInterval(async () => {
-          // Set up start time
-          startTime = Date.now();
+          // Set up loop start time
+          loopStartTime = Date.now();
 
           // If loop > N times, clear the loop, global loop final price and return init
           if (loopCounter === loopStopCandleCounter + 1) {
@@ -511,21 +515,22 @@ const init = async () => {
           }
 
           // To set function end time
-          endTime = Date.now();
+          loopEndTime = Date.now();
 
           // To increase loop counter if criteria not fit
           loopCounter++;
-        }, 1000 * 60 * OrderIntervalMin - (endTime - startTime));
+        }, 1000 * 60 * OrderIntervalMin - (loopEndTime - loopStartTime));
       } else {
         //----------------------------------------------------------------------
         // If there is no Criteria met at all, return to init()
         //----------------------------------------------------------------------
+        endTime = Date.now();
         setTimeout(() => {
           console.log(
             `None criteria fit as at ${new Date()}, return to watch mode!`
           );
           return init();
-        }, 1000 * 60 * OrderIntervalMin);
+        }, 1000 * 60 * OrderIntervalMin - (endTime - startTime));
       }
     }
   } catch (err) {
