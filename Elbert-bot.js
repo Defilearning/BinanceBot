@@ -6,19 +6,20 @@ const fs = require("fs");
 //-------------------------------------------------------------------------------------------------
 // Global setting for 1st time
 //-------------------------------------------------------------------------------------------------
-let accountFiat = "USDT";
+let accountFiat = "BUSD";
 let accountMargin = "ISOLATED";
 let accountLeverage = 20;
-let tradePair = "ETHUSDT";
+let tradePair = "ADABUSD";
 
-let riskStopLossPrice = 1;
+let riskStopLossPrice = 5;
 
 let positionIntervalSec = 1;
 let OrderIntervalMin = 1;
 let loopStopCandleCounter = 7;
 let defaultStopLossPer = 0.01;
 let defaultTargetProfitPer = 0.015;
-let lowestStopLossPer = 0.003;
+let lowestStopLossPer = 0.0025;
+let decimalToFixed = 0;
 
 let loopInterval, loopFinalPrice, targetProfitPrice, stopLossPrice;
 
@@ -338,7 +339,7 @@ const init = async () => {
 
             // To calculate order quantity
             let orderQuantity = (nextOrderPrice / loopClosingPrice1m).toFixed(
-              3
+              decimalToFixed
             );
 
             // Fill market order for LONG position
@@ -481,7 +482,7 @@ const init = async () => {
 
             // To calculate order quantity
             let orderQuantity = (nextOrderPrice / loopClosingPrice1m).toFixed(
-              3
+              decimalToFixed
             );
 
             // Fill market order for SHORT position
