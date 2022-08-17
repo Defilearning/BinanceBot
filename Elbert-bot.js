@@ -230,7 +230,7 @@ const init = async () => {
 
       // 3rd criteria - 1m RSI
       const closingPriceRSI = (
-        await marketAPI.checkPrice(tradePair, "1m", 30)
+        await marketAPI.checkPrice(tradePair, "1m", 50)
       ).map((el) => +el[4]);
       let currentClosingPrice = closingPriceRSI[0];
       let currentRSI1m = TA.calculateRSI(14, closingPriceRSI);
