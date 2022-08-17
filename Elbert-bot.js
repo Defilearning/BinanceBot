@@ -110,7 +110,7 @@ const init = async () => {
           //----------------------------------------------------------------------
           // If hit target profit price
           //----------------------------------------------------------------------
-          if (currentPrice <= targetProfitPrice) {
+          else if (currentPrice <= targetProfitPrice) {
             // Fill market to close SHORT position
             const orderResponse = await accountAPI.newOrderMarket(
               tradePair,
@@ -130,9 +130,9 @@ const init = async () => {
             setTimeout(() => {
               return init();
             }, 1000 * 2);
+          } else {
+            console.log(`${currentPrice} not fit TP or SL`);
           }
-
-          console.log(`${currentPrice} not fit TP or SL`);
         }, 1000 * positionIntervalSec);
       }
 
