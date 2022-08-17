@@ -98,9 +98,13 @@ const init = async () => {
             // reset stop loss, target profit and loop final price
             stopLossPrice = targetProfitPrice = loopFinalPrice = "";
 
-            // clear interval and return to init
+            // clear interval
             clearInterval(loopInterval);
-            return init();
+
+            // Settimeout 2 sec to return init for safeguard purpose
+            setTimeout(() => {
+              return init();
+            }, 1000 * 2);
           }
 
           //----------------------------------------------------------------------
@@ -119,9 +123,13 @@ const init = async () => {
             // reset stop loss, target profit and loop final price
             stopLossPrice = targetProfitPrice = loopFinalPrice = "";
 
-            // clear interval and return to init
+            // clear interval
             clearInterval(loopInterval);
-            return init();
+
+            // Settimeout 2 sec to return init for safeguard purpose
+            setTimeout(() => {
+              return init();
+            }, 1000 * 2);
           }
 
           console.log(`${currentPrice} not fit TP or SL`);
@@ -163,9 +171,13 @@ const init = async () => {
             // reset stop loss, target profit and loop final price
             stopLossPrice = targetProfitPrice = loopFinalPrice = "";
 
-            // clear interval and return to init
+            // clear interval
             clearInterval(loopInterval);
-            return init();
+
+            // Settimeout 2 sec to return init for safeguard purpose
+            setTimeout(() => {
+              return init();
+            }, 1000 * 2);
           }
 
           //----------------------------------------------------------------------
@@ -184,9 +196,13 @@ const init = async () => {
             // reset stop loss, target profit and loop final price
             stopLossPrice = targetProfitPrice = loopFinalPrice = "";
 
-            // clear interval and return to init
+            // clear interval
             clearInterval(loopInterval);
-            return init();
+
+            // Settimeout 2 sec to return init for safeguard purpose
+            setTimeout(() => {
+              return init();
+            }, 1000 * 2);
           }
 
           console.log(`${currentPrice} not fit TP or SL`);
@@ -354,7 +370,11 @@ const init = async () => {
             );
 
             clearInterval(loopInterval);
-            return init();
+
+            // Settimeout 2 sec to return init for safeguard purpose
+            setTimeout(() => {
+              return init();
+            }, 1000 * 2);
           }
 
           // To increase loop counter if criteria not fit
@@ -497,7 +517,11 @@ const init = async () => {
             );
 
             clearInterval(loopInterval);
-            return init();
+
+            // Settimeout 2 sec to return init for safeguard purpose
+            setTimeout(() => {
+              return init();
+            }, 1000 * 2);
           }
 
           // To increase loop counter if criteria not fit
