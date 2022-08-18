@@ -301,7 +301,9 @@ const init = async () => {
           if (loopRSI1m[0] < 30 && loopCounter > 1) {
             loopCounter = 1;
             console.log(
-              `Current RSI: ${loopRSI1m[0]} is below 30, hence loop counter reset!`
+              `${new Date()} Current RSI: ${
+                loopRSI1m[0]
+              } is below 30, hence loop counter reset!`
             );
           }
 
@@ -447,7 +449,9 @@ const init = async () => {
           if (loopRSI1m[0] > 70 && loopCounter > 1) {
             loopCounter = 1;
             console.log(
-              `Current RSI: ${loopRSI1m[0]} is above 70, hence loop counter reset!`
+              `${new Date()} Current RSI: ${
+                loopRSI1m[0]
+              } is above 70, hence loop counter reset!`
             );
           }
 

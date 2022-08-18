@@ -8,7 +8,7 @@ const headers = {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Check BTC K-line
-exports.checkPrice = async (symbol, interval, limit = 1) => {
+exports.checkPrice = async (symbol, interval, limit = 8000) => {
   try {
     const queryString = `symbol=${symbol}&interval=${interval}&limit=${limit}`;
 
@@ -19,6 +19,15 @@ exports.checkPrice = async (symbol, interval, limit = 1) => {
     });
     return response.data.reverse();
   } catch (err) {
-    throw new Error(err.response.data.msg);
+    if (err.response) {
+      if (err.response.data) {
+        if (err.response.data.msg) {
+          throw new Error(err.response.data.msg);
+        }
+        throw new Error(err.response.data);
+      }
+      throw new Error(err.response);
+    }
+    throw new Error(err);
   }
 };

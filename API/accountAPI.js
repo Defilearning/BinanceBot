@@ -21,7 +21,16 @@ exports.checkIncome = async () => {
     });
     return response.data;
   } catch (err) {
-    throw new Error(err.response.data.msg);
+    if (err.response) {
+      if (err.response.data) {
+        if (err.response.data.msg) {
+          throw new Error(err.response.data.msg);
+        }
+        throw new Error(err.response.data);
+      }
+      throw new Error(err.response);
+    }
+    throw new Error(err);
   }
 };
 
@@ -38,7 +47,16 @@ exports.checkFutureBalance = async () => {
     });
     return response.data;
   } catch (err) {
-    throw new Error(err.response.data.msg);
+    if (err.response) {
+      if (err.response.data) {
+        if (err.response.data.msg) {
+          throw new Error(err.response.data.msg);
+        }
+        throw new Error(err.response.data);
+      }
+      throw new Error(err.response);
+    }
+    throw new Error(err);
   }
 };
 
@@ -55,7 +73,16 @@ exports.checkPosition = async (symbol) => {
     });
     return response.data;
   } catch (err) {
-    throw new Error(err.response.data.msg);
+    if (err.response) {
+      if (err.response.data) {
+        if (err.response.data.msg) {
+          throw new Error(err.response.data.msg);
+        }
+        throw new Error(err.response.data);
+      }
+      throw new Error(err.response);
+    }
+    throw new Error(err);
   }
 };
 
@@ -72,7 +99,16 @@ exports.initialMargin = async (symbol, marginType) => {
     });
     return `Account margin has set to ISOLATED!`;
   } catch (err) {
-    return err.response.data.msg;
+    if (err.response) {
+      if (err.response.data) {
+        if (err.response.data.msg) {
+          throw new Error(err.response.data.msg);
+        }
+        throw new Error(err.response.data);
+      }
+      throw new Error(err.response);
+    }
+    throw new Error(err);
   }
 };
 
@@ -89,7 +125,16 @@ exports.initialLeverage = async (symbol, leverage) => {
     });
     return `Account leverge has set to ${response.data.leverage}!`;
   } catch (err) {
-    return err.response.data.msg;
+    if (err.response) {
+      if (err.response.data) {
+        if (err.response.data.msg) {
+          throw new Error(err.response.data.msg);
+        }
+        throw new Error(err.response.data);
+      }
+      throw new Error(err.response);
+    }
+    throw new Error(err);
   }
 };
 
@@ -106,7 +151,16 @@ exports.newOrderLimit = async (symbol, side, timeInForce, quantity, price) => {
     });
     return response.data;
   } catch (err) {
-    throw new Error(err.response.data.msg);
+    if (err.response) {
+      if (err.response.data) {
+        if (err.response.data.msg) {
+          throw new Error(err.response.data.msg);
+        }
+        throw new Error(err.response.data);
+      }
+      throw new Error(err.response);
+    }
+    throw new Error(err);
   }
 };
 
@@ -123,6 +177,15 @@ exports.newOrderMarket = async (symbol, side, quantity) => {
     });
     return response.data;
   } catch (err) {
-    throw new Error(err.response.data.msg);
+    if (err.response) {
+      if (err.response.data) {
+        if (err.response.data.msg) {
+          throw new Error(err.response.data.msg);
+        }
+        throw new Error(err.response.data);
+      }
+      throw new Error(err.response);
+    }
+    throw new Error(err);
   }
 };
