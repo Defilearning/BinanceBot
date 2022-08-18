@@ -99,16 +99,7 @@ exports.initialMargin = async (symbol, marginType) => {
     });
     return `Account margin has set to ISOLATED!`;
   } catch (err) {
-    if (err.response) {
-      if (err.response.data) {
-        if (err.response.data.msg) {
-          throw new Error(err.response.data.msg);
-        }
-        throw new Error(err.response.data);
-      }
-      throw new Error(err.response);
-    }
-    throw new Error(err);
+    return err.response.data.msg;
   }
 };
 
@@ -125,16 +116,7 @@ exports.initialLeverage = async (symbol, leverage) => {
     });
     return `Account leverge has set to ${response.data.leverage}!`;
   } catch (err) {
-    if (err.response) {
-      if (err.response.data) {
-        if (err.response.data.msg) {
-          throw new Error(err.response.data.msg);
-        }
-        throw new Error(err.response.data);
-      }
-      throw new Error(err.response);
-    }
-    throw new Error(err);
+    return err.response.data.msg;
   }
 };
 
