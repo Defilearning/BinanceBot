@@ -8,7 +8,7 @@ const headers = {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Check BTC K-line
-exports.checkPrice = async (symbol, interval, limit = 8000) => {
+exports.checkPrice = async (symbol, interval, limit = 1) => {
   try {
     const queryString = `symbol=${symbol}&interval=${interval}&limit=${limit}`;
 
