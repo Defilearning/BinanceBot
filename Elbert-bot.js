@@ -544,10 +544,17 @@ const init = async () => {
       }
     }
   } catch (err) {
-    fs.appendFileSync(
-      "BinanceError.txt",
-      `\n${new Date()}: Error - ${err.toString()}, ${err.stack.toString()}\n`
-    );
+    if (err.response) {
+      fs.appendFileSync(
+        "BinanceError.txt",
+        `\n${new Date()}: Error - ${err.response.data.msg.toString()}, ${err.stack.toString()}\n`
+      );
+    } else {
+      fs.appendFileSync(
+        "BinanceError.txt",
+        `\n${new Date()}: Error - ${err.toString()}, ${err.stack.toString()}\n`
+      );
+    }
     console.log(`----------------------------------------`);
     console.log(`System down, restarting in 5 seconds:-`);
     console.log(`----------------------------------------`);

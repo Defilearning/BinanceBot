@@ -11,7 +11,6 @@ const headers = {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Check Income History
 exports.checkIncome = async () => {
-  try {
     const queryString = `timestamp=${Date.now()}`;
     const signature = obtainSignature(queryString);
     const response = await axios({
@@ -20,24 +19,11 @@ exports.checkIncome = async () => {
       headers,
     });
     return response.data;
-  } catch (err) {
-    if (err.response) {
-      if (err.response.data) {
-        if (err.response.data.msg) {
-          throw new Error(err.response.data.msg);
-        }
-        throw new Error(err.response.data);
-      }
-      throw new Error(err.response);
-    }
-    throw new Error(err);
-  }
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Check future balance
 exports.checkFutureBalance = async () => {
-  try {
     const queryString = `timestamp=${Date.now()}`;
     const signature = obtainSignature(queryString);
     const response = await axios({
@@ -46,24 +32,11 @@ exports.checkFutureBalance = async () => {
       headers,
     });
     return response.data;
-  } catch (err) {
-    if (err.response) {
-      if (err.response.data) {
-        if (err.response.data.msg) {
-          throw new Error(err.response.data.msg);
-        }
-        throw new Error(err.response.data);
-      }
-      throw new Error(err.response);
-    }
-    throw new Error(err);
-  }
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Check Future Position
 exports.checkPosition = async (symbol) => {
-  try {
     const queryString = `symbol=${symbol}&timestamp=${Date.now()}`;
     const signature = obtainSignature(queryString);
     const response = await axios({
@@ -72,18 +45,6 @@ exports.checkPosition = async (symbol) => {
       headers,
     });
     return response.data;
-  } catch (err) {
-    if (err.response) {
-      if (err.response.data) {
-        if (err.response.data.msg) {
-          throw new Error(err.response.data.msg);
-        }
-        throw new Error(err.response.data);
-      }
-      throw new Error(err.response);
-    }
-    throw new Error(err);
-  }
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -123,7 +84,6 @@ exports.initialLeverage = async (symbol, leverage) => {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Open new GTC Order
 exports.newOrderLimit = async (symbol, side, timeInForce, quantity, price) => {
-  try {
     const queryString = `symbol=${symbol}&side=${side}&type=LIMIT&timeInForce=${timeInForce}&quantity=${quantity}&price=${price}&timestamp=${Date.now()}`;
     const signature = obtainSignature(queryString);
     const response = await axios({
@@ -132,24 +92,11 @@ exports.newOrderLimit = async (symbol, side, timeInForce, quantity, price) => {
       headers,
     });
     return response.data;
-  } catch (err) {
-    if (err.response) {
-      if (err.response.data) {
-        if (err.response.data.msg) {
-          throw new Error(err.response.data.msg);
-        }
-        throw new Error(err.response.data);
-      }
-      throw new Error(err.response);
-    }
-    throw new Error(err);
-  }
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Open new Market Order
 exports.newOrderMarket = async (symbol, side, quantity) => {
-  try {
     const queryString = `symbol=${symbol}&side=${side}&type=MARKET&quantity=${quantity}&timestamp=${Date.now()}`;
     const signature = obtainSignature(queryString);
     const response = await axios({
@@ -158,16 +105,4 @@ exports.newOrderMarket = async (symbol, side, quantity) => {
       headers,
     });
     return response.data;
-  } catch (err) {
-    if (err.response) {
-      if (err.response.data) {
-        if (err.response.data.msg) {
-          throw new Error(err.response.data.msg);
-        }
-        throw new Error(err.response.data);
-      }
-      throw new Error(err.response);
-    }
-    throw new Error(err);
-  }
 };
