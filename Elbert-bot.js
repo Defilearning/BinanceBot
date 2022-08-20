@@ -547,12 +547,12 @@ const init = async () => {
     if (err.response) {
       fs.appendFileSync(
         "BinanceError.txt",
-        `\n${new Date()}: Error - ${err.response.data.msg.toString()}, ${err.stack.toString()}\n`
+        `\n${new Date()}: Error - ${err.response.toString()}\n-----------------------------------------------------------------------------------`
       );
     } else {
       fs.appendFileSync(
         "BinanceError.txt",
-        `\n${new Date()}: Error - ${err.toString()}, ${err.stack.toString()}\n`
+        `\n${new Date()}: Error - ${err.toString()}\n-----------------------------------------------------------------------------------`
       );
     }
     console.log(`----------------------------------------`);
