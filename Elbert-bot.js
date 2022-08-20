@@ -544,15 +544,22 @@ const init = async () => {
       }
     }
   } catch (err) {
+    const stackTrace = {};
+    Error.captureStackTrace(stackTrace);
+
     if (err.response) {
       fs.appendFileSync(
         "BinanceError.txt",
-        `\n${new Date()}: Error - ${err.response.toString()}\n-----------------------------------------------------------------------------------`
+        `\n${new Date()}: Error - ${err.response.data.msg}\n${
+          stackTrace.stack
+        }\n-----------------------------------------------------------------------------------`
       );
     } else {
       fs.appendFileSync(
         "BinanceError.txt",
-        `\n${new Date()}: Error - ${err.toString()}\n-----------------------------------------------------------------------------------`
+        `\n${new Date()}: Error - ${err.message}\n${
+          stackTrace.stack
+        }\n-----------------------------------------------------------------------------------`
       );
     }
     console.log(`----------------------------------------`);
