@@ -545,9 +545,8 @@ const init = async () => {
     }
   } catch (err) {
     const stackTrace = {};
-    Error.captureStackTrace(stackTrace);
-
     if (err.response) {
+      Error.captureStackTrace(stackTrace);
       fs.appendFileSync(
         "BinanceError.txt",
         `\n${new Date()}: Error - ${err.response.data.msg}\n${
@@ -557,8 +556,8 @@ const init = async () => {
     } else {
       fs.appendFileSync(
         "BinanceError.txt",
-        `\n${new Date()}: Error - ${err.message}\n${
-          stackTrace.stack
+        `\n${new Date()}: Error - ${
+          err.message
         }\n-----------------------------------------------------------------------------------`
       );
     }
