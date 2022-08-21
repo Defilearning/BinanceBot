@@ -545,8 +545,9 @@ const init = async () => {
     }
   } catch (err) {
     const stackTrace = {};
+    Error.captureStackTrace(stackTrace);
+
     if (err.response) {
-      Error.captureStackTrace(stackTrace);
       fs.appendFileSync(
         "BinanceError.txt",
         `\n${new Date()}: Error - ${err.response.data.msg}\n${
@@ -556,9 +557,7 @@ const init = async () => {
     } else {
       fs.appendFileSync(
         "BinanceError.txt",
-        `\n${new Date()}: Error - ${
-          err.message
-        }\n-----------------------------------------------------------------------------------`
+        `\n${new Date()}: Error - ${err.toString()}\n-----------------------------------------------------------------------------------`
       );
     }
     console.log(`----------------------------------------`);
@@ -571,3 +570,23 @@ const init = async () => {
 };
 
 init();
+
+process.on("uncaughtException", (err) => {
+  fs.appendFileSync(
+    "BinanceError.txt",
+    `\n${new Date()}: Error - ${
+      err.message
+    }\n-----------------------------------------------------------------------------------`
+  );
+  return init();
+});
+
+process.on("unhandledRejection", (err) => {
+  fs.appendFileSync(
+    "BinanceError.txt",
+    `\n${new Date()}: Error - ${
+      err.message
+    }\n-----------------------------------------------------------------------------------`
+  );
+  return init();
+});
