@@ -570,23 +570,3 @@ const init = async () => {
 };
 
 init();
-
-process.on("uncaughtException", (err) => {
-  fs.appendFileSync(
-    "BinanceError.txt",
-    `\n${new Date()}: Error - ${
-      err.message
-    }\n-----------------------------------------------------------------------------------`
-  );
-  return init();
-});
-
-process.on("unhandledRejection", (err) => {
-  fs.appendFileSync(
-    "BinanceError.txt",
-    `\n${new Date()}: Error - ${
-      err.message
-    }\n-----------------------------------------------------------------------------------`
-  );
-  return init();
-});
