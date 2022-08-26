@@ -2,21 +2,14 @@ const accountAPI = require("./API/accountAPI");
 const marketAPI = require("./API/marketAPI");
 const TA = require("./technical_Indicator");
 const fs = require("fs");
-const express = require("express");
-const app = express();
-app.get("/", (req, res) => {
-  res.status(200).json({
-    status: "success!",
-  });
-});
 
 //-------------------------------------------------------------------------------------------------
 // Global setting for 1st time
 //-------------------------------------------------------------------------------------------------
-let accountFiat = "USDT";
+let accountFiat = "BUSD";
 let accountMargin = "ISOLATED";
 let accountLeverage = 20;
-let tradePair = "ETHUSDT";
+let tradePair = "ADABUSD";
 
 let riskStopLossPrice = 5;
 
@@ -561,13 +554,11 @@ const init = async () => {
           stackTrace.stack
         }\n-----------------------------------------------------------------------------------`
       );
-      console.log(err.response.data.msg);
     } else {
       fs.appendFileSync(
         "BinanceError.txt",
         `\n${new Date()}: Error - ${err.toString()}\n-----------------------------------------------------------------------------------`
       );
-      console.log(err);
     }
     console.log(`----------------------------------------`);
     console.log(`System down, restarting in 5 seconds:-`);
@@ -578,8 +569,4 @@ const init = async () => {
   }
 };
 
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`Server listening at port ${port}:`);
-  init();
-});
+init();
