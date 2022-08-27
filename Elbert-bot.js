@@ -8,18 +8,21 @@ const fs = require("fs");
 //-------------------------------------------------------------------------------------------------
 let accountFiat = "BUSD";
 let accountMargin = "ISOLATED";
-let accountLeverage = 20;
-let tradePair = "ADABUSD";
+let accountLeverage = 50;
+let tradePair = "BTCBUSD";
+let defaultStopLossPer = 0.01;
+let defaultTargetProfitPer = 0.015;
 
-let riskStopLossPrice = 5;
+let lowestStopLossPer = 0.001;
+let riskStopLossPrice = 2;
+let targetRewardRatio = 2;
+let decimalToFixed = 3;
+
+let global4hNonTradeRestriction = 0.0025;
 
 let positionIntervalSec = 1;
 let OrderIntervalMin = 1;
 let loopStopCandleCounter = 7;
-let defaultStopLossPer = 0.01;
-let defaultTargetProfitPer = 0.015;
-let lowestStopLossPer = 0.0025;
-let decimalToFixed = 0;
 
 let loopInterval, loopFinalPrice, targetProfitPrice, stopLossPrice;
 
@@ -71,9 +74,10 @@ const init = async () => {
         stopLossPrice =
           loopFinalPrice || positionPrice * (1 + defaultStopLossPer);
 
-        // Set target profit Price = entryPrice - (HighestPrice - entryPrice) * 1.5
+        // Set target profit Price = entryPrice - (HighestPrice - entryPrice) * targetRewardRatio
         targetProfitPrice =
-          positionPrice - (loopFinalPrice - positionPrice) * 1.5 ||
+          positionPrice -
+            (loopFinalPrice - positionPrice) * targetRewardRatio ||
           positionPrice * (1 - defaultTargetProfitPer);
 
         // Set loop for target profit or stop loss
@@ -144,9 +148,10 @@ const init = async () => {
         stopLossPrice =
           loopFinalPrice || positionPrice * (1 - defaultStopLossPer);
 
-        // Set target profit Price = entryPrice - (LowestPrice - entryPrice) * 1.5
+        // Set target profit Price = entryPrice - (LowestPrice - entryPrice) * targetRewardRatio
         targetProfitPrice =
-          positionPrice - (loopFinalPrice - positionPrice) * 1.5 ||
+          positionPrice -
+            (loopFinalPrice - positionPrice) * targetRewardRatio ||
           positionPrice * (1 + defaultTargetProfitPer);
 
         // Set loop for target profit or stop loss
@@ -242,7 +247,8 @@ const init = async () => {
       if (
         // TOCHANGE:
         // currentClosingPrice > currentEMA1d &&
-        currentClosingPrice > currentEMA4h * 1.005 &&
+        currentClosingPrice >
+          currentEMA4h * (1 + global4hNonTradeRestriction) &&
         currentRSI1m[0] < 30
       ) {
         console.log(
@@ -318,7 +324,10 @@ const init = async () => {
           //----------------------------------------------------------------------
           // to void loop if closing price is > Global EMA 240 * 0.995
           //----------------------------------------------------------------------
-          if (loopFinalPrice < currentEMA4h * 1.005) {
+          if (
+            loopFinalPrice <
+            currentEMA4h * (1 + global4hNonTradeRestriction)
+          ) {
             console.log(
               `Runtime has stopped due to closing price is closed to 0.5% of Global EMA`
             );
@@ -390,7 +399,8 @@ const init = async () => {
       else if (
         //TOCHANGE:
         // currentClosingPrice < currentEMA1d &&
-        currentClosingPrice < currentEMA4h * 0.995 &&
+        currentClosingPrice <
+          currentEMA4h * (1 - global4hNonTradeRestriction) &&
         currentRSI1m[0] > 70
       ) {
         console.log(
@@ -467,7 +477,10 @@ const init = async () => {
           // to void loop if closing price is > Global EMA 240 * 0.995
           //----------------------------------------------------------------------
 
-          if (loopFinalPrice > currentEMA4h * 0.995) {
+          if (
+            loopFinalPrice >
+            currentEMA4h * (1 - global4hNonTradeRestriction)
+          ) {
             console.log(
               `Runtime has stopped due to closing price is closed to 0.5% of Global EMA`
             );
