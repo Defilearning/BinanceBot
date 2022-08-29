@@ -10,11 +10,11 @@ let accountFiat = "BUSD";
 let accountMargin = "ISOLATED";
 let accountLeverage = 50;
 let tradePair = "BTCBUSD";
-let defaultStopLossPer = 0.01;
-let defaultTargetProfitPer = 0.015;
+let defaultStopLossPer = 0.005;
+let defaultTargetProfitPer = 0.01;
 
 let lowestStopLossPer = 0.001;
-let riskStopLossPrice = 2;
+let riskStopLossPrice = 4;
 let targetRewardRatio = 2;
 let decimalToFixed = 3;
 
