@@ -14,6 +14,7 @@ let defaultStopLossPer = 0.005;
 let defaultTargetProfitPer = 0.01;
 
 let lowestStopLossPer = 0.001;
+let highestStopLossPer = 0.0035;
 let riskStopLossPrice = 4;
 let targetRewardRatio = 2;
 let decimalToFixed = 3;
@@ -352,12 +353,17 @@ const init = async () => {
               nextOrderPrice = 11;
             }
 
-            // If stop loss percentage < lowest stop loss percentage, return init()
-            if (stopLossPercentage < lowestStopLossPer) {
+            // If stop loss percentage < lowest stop loss percentage || > highest stop loss percentage, return init()
+            if (
+              stopLossPercentage < lowestStopLossPer ||
+              stopLossPercentage > highestStopLossPer
+            ) {
               console.log(
-                `Runtime has stopped due to stop loss percentage < ${
+                `Runtime has stopped due to stop loss percentage is < ${
                   lowestStopLossPer * 100
-                }% - Current percentage - ${stopLossPercentage * 100}%`
+                }% or > ${highestStopLossPer * 100}: Current percentage - ${
+                  stopLossPercentage * 100
+                }%`
               );
               loopFinalPrice = "";
               clearInterval(loopInterval);
@@ -505,12 +511,17 @@ const init = async () => {
               nextOrderPrice = 11;
             }
 
-            // If stop loss percentage < lowest stop loss percentage, return init()
-            if (stopLossPercentage < lowestStopLossPer) {
+            // If stop loss percentage < lowest stop loss percentage || > highest stop loss percentage, return init()
+            if (
+              stopLossPercentage < lowestStopLossPer ||
+              stopLossPercentage > highestStopLossPer
+            ) {
               console.log(
-                `Runtime has stopped due to stop loss percentage < ${
+                `Runtime has stopped due to stop loss percentage is < ${
                   lowestStopLossPer * 100
-                }% - Current percentage - ${stopLossPercentage * 100}%`
+                }% or > ${highestStopLossPer * 100}: Current percentage - ${
+                  stopLossPercentage * 100
+                }%`
               );
               loopFinalPrice = "";
               clearInterval(loopInterval);
