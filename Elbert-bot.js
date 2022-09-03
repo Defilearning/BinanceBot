@@ -10,8 +10,8 @@ let accountFiat = "BUSD";
 let accountMargin = "ISOLATED";
 let accountLeverage = 50;
 let tradePair = "BTCBUSD";
-let defaultStopLossPer = 0.005;
-let defaultTargetProfitPer = 0.01;
+let defaultStopLossPer = 0.0022;
+let defaultTargetProfitPer = 0.0044;
 
 let lowestStopLossPer = 0.001;
 let highestStopLossPer = 0.0035;
@@ -594,3 +594,8 @@ const init = async () => {
 };
 
 init();
+
+process.on("uncaughtException", (err) => {
+  console.log(err);
+  process.exit(1);
+});
