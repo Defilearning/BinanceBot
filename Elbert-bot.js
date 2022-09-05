@@ -283,7 +283,10 @@ const init = async () => {
 
           // to set lowest price for the 1st candle(stop loss price)
           if (loopCounter === 1) {
-            loopFinalPrice = loopLowestPriceArr1m[0];
+            loopFinalPrice =
+              loopLowestPriceArr1m[0] < loopLowestPriceArr1m[1]
+                ? loopLowestPriceArr1m[0]
+                : loopLowestPriceArr1m[1];
           } else {
             // to set lowest price for the prev candle(stop loss price)
             loopFinalPrice =
@@ -440,7 +443,10 @@ const init = async () => {
 
           // to set highest price for the 1st candle(stop loss price)
           if (loopCounter === 1) {
-            loopFinalPrice = loopHighestPriceArr1m[0];
+            loopFinalPrice =
+              loopHighestPriceArr1m[0] > loopHighestPriceArr1m[1]
+                ? loopHighestPriceArr1m[0]
+                : loopHighestPriceArr1m[1];
           } else {
             // to set highest price for prev candle(stop loss price)
             loopFinalPrice =
