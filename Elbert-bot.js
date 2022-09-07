@@ -15,14 +15,15 @@ let defaultTargetProfitPer = 0.0044;
 
 let lowestStopLossPer = 0.001;
 let highestStopLossPer = 0.0035;
-let riskStopLossPrice = 4;
+let riskStopLossPrice = 5;
 let targetRewardRatio = 2;
 let decimalToFixed = 3;
 
 let global4hNonTradeRestriction = 0.0025;
 
 let positionIntervalSec = 1;
-let OrderIntervalMin = 1;
+let OrderIntervalMin = 5;
+let orderTimeFrame = "5m";
 let loopStopCandleCounter = 7;
 
 let loopInterval, loopFinalPrice, targetProfitPrice, stopLossPrice;
@@ -84,7 +85,7 @@ const init = async () => {
         // Set loop for target profit or stop loss
         loopInterval = setInterval(async () => {
           const currentPrice = (
-            await marketAPI.checkPrice(tradePair, "1m")
+            await marketAPI.checkPrice(tradePair, orderTimeFrame)
           )[0][4];
 
           //----------------------------------------------------------------------
@@ -136,7 +137,7 @@ const init = async () => {
               return init();
             }, 1000 * 2);
           } else {
-            console.log(`${currentPrice} not fit TP or SL`);
+            // console.log(`${currentPrice} not fit TP or SL`);
           }
         }, 1000 * positionIntervalSec);
       }
@@ -158,7 +159,7 @@ const init = async () => {
         // Set loop for target profit or stop loss
         loopInterval = setInterval(async () => {
           const currentPrice = (
-            await marketAPI.checkPrice(tradePair, "1m")
+            await marketAPI.checkPrice(tradePair, orderTimeFrame)
           )[0][4];
 
           //----------------------------------------------------------------------
@@ -210,7 +211,7 @@ const init = async () => {
               return init();
             }, 1000 * 2);
           } else {
-            console.log(`${currentPrice} not fit TP or SL`);
+            // console.log(`${currentPrice} not fit TP or SL`);
           }
         }, 1000 * positionIntervalSec);
       }
@@ -236,7 +237,7 @@ const init = async () => {
 
       // 3rd criteria - 1m RSI
       const closingPriceRSI = (
-        await marketAPI.checkPrice(tradePair, "1m", 50)
+        await marketAPI.checkPrice(tradePair, orderTimeFrame, 50)
       ).map((el) => +el[4]);
       let currentClosingPrice = closingPriceRSI[0];
       let currentRSI1m = TA.calculateRSI(14, closingPriceRSI);
@@ -271,7 +272,7 @@ const init = async () => {
           // To get 1m chart for EMA, closing price and highest price
           const loopCheckPrice1m = await marketAPI.checkPrice(
             tradePair,
-            "1m",
+            orderTimeFrame,
             20
           );
 
@@ -304,7 +305,7 @@ const init = async () => {
           // to reset loop counter if RSI is continuously less than 30
           //----------------------------------------------------------------------
           const loopPriceRSI = (
-            await marketAPI.checkPrice(tradePair, "1m", 50)
+            await marketAPI.checkPrice(tradePair, orderTimeFrame, 50)
           ).map((el) => +el[4]);
           let loopRSI1m = TA.calculateRSI(14, loopPriceRSI);
 
@@ -364,9 +365,9 @@ const init = async () => {
               console.log(
                 `Runtime has stopped due to stop loss percentage is < ${
                   lowestStopLossPer * 100
-                }% or > ${highestStopLossPer * 100}: Current percentage - ${
-                  stopLossPercentage * 100
-                }%`
+                }% or > ${(highestStopLossPer * 100).toFixed(
+                  2
+                )}%: Current percentage - ${stopLossPercentage * 100}%`
               );
               loopFinalPrice = "";
               clearInterval(loopInterval);
@@ -431,7 +432,7 @@ const init = async () => {
           // To get 1m chart for EMA, closing price and highest price
           const loopCheckPrice1m = await marketAPI.checkPrice(
             tradePair,
-            "1m",
+            orderTimeFrame,
             20
           );
 
@@ -464,7 +465,7 @@ const init = async () => {
           // to reset loop counter if RSI is continuously less than 30
           //----------------------------------------------------------------------
           const loopPriceRSI = (
-            await marketAPI.checkPrice(tradePair, "1m", 50)
+            await marketAPI.checkPrice(tradePair, orderTimeFrame, 50)
           ).map((el) => +el[4]);
           let loopRSI1m = TA.calculateRSI(14, loopPriceRSI);
 
@@ -525,9 +526,9 @@ const init = async () => {
               console.log(
                 `Runtime has stopped due to stop loss percentage is < ${
                   lowestStopLossPer * 100
-                }% or > ${highestStopLossPer * 100}: Current percentage - ${
-                  stopLossPercentage * 100
-                }%`
+                }% or > ${(highestStopLossPer * 100).toFixed(
+                  2
+                )}%: Current percentage - ${stopLossPercentage * 100}%`
               );
               loopFinalPrice = "";
               clearInterval(loopInterval);
@@ -566,9 +567,9 @@ const init = async () => {
         // If there is no Criteria met at all, return to init()
         //----------------------------------------------------------------------
         setTimeout(() => {
-          console.log(
-            `None criteria fit as at ${new Date()}, return to watch mode!`
-          );
+          // console.log(
+          //   `None criteria fit as at ${new Date()}, return to watch mode!`
+          // );
           return init();
         }, 1000 * 60 * OrderIntervalMin);
       }
