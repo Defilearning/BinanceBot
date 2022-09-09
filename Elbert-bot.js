@@ -13,17 +13,18 @@ let tradePair = "BTCBUSD";
 let defaultStopLossPer = 0.0022;
 let defaultTargetProfitPer = 0.0044;
 
-let lowestStopLossPer = 0.001;
-let highestStopLossPer = 0.0035;
-let riskStopLossPrice = 5;
+let lowestStopLossPer = 0.0011;
+let ChangeRewardRatioPer = 0.0035;
+let highestStopLossPer = 0.004;
+let riskStopLossPrice = 3;
 let targetRewardRatio = 2;
 let decimalToFixed = 3;
 
 let global4hNonTradeRestriction = 0.0025;
 
 let positionIntervalSec = 1;
-let OrderIntervalMin = 5;
-let orderTimeFrame = "5m";
+let OrderIntervalMin = 1;
+let orderTimeFrame = "1m";
 let loopStopCandleCounter = 7;
 
 let loopInterval, loopFinalPrice, targetProfitPrice, stopLossPrice;
@@ -334,7 +335,9 @@ const init = async () => {
             currentEMA4h * (1 + global4hNonTradeRestriction)
           ) {
             console.log(
-              `Runtime has stopped due to closing price is closed to 0.5% of Global EMA`
+              `Runtime has stopped due to closing price is closed to ${(
+                global4hNonTradeRestriction * 100
+              ).toFixed(2)}% of Global EMA`
             );
             loopFinalPrice = "";
             clearInterval(loopInterval);
@@ -363,15 +366,32 @@ const init = async () => {
               stopLossPercentage > highestStopLossPer
             ) {
               console.log(
-                `Runtime has stopped due to stop loss percentage is < ${
+                `Runtime has stopped due to stop loss percentage is < ${(
                   lowestStopLossPer * 100
-                }% or > ${(highestStopLossPer * 100).toFixed(
+                ).toFixed(2)}% or > ${(highestStopLossPer * 100).toFixed(
                   2
-                )}%: Current percentage - ${stopLossPercentage * 100}%`
+                )}%: Current percentage - ${(stopLossPercentage * 100).toFixed(
+                  2
+                )}%`
               );
               loopFinalPrice = "";
               clearInterval(loopInterval);
               return init();
+            }
+
+            // To change reward ratio if stop loss % is between Highest and the % to change
+            if (
+              stopLossPercentage >= ChangeRewardRatioPer &&
+              stopLossPercentage <= highestStopLossPer
+            ) {
+              targetRewardRatio = 1.5;
+              console.log(
+                `As the current SL% is ${(stopLossPercentage * 100).toFixed(
+                  2
+                )}%, hence reward ratio changed to ${targetRewardRatio} `
+              );
+            } else {
+              targetRewardRatio = 2;
             }
 
             // To calculate order quantity
@@ -495,7 +515,9 @@ const init = async () => {
             currentEMA4h * (1 - global4hNonTradeRestriction)
           ) {
             console.log(
-              `Runtime has stopped due to closing price is closed to 0.5% of Global EMA`
+              `Runtime has stopped due to closing price is closed to ${(
+                global4hNonTradeRestriction * 100
+              ).toFixed(2)}% of Global EMA`
             );
             loopFinalPrice = "";
             clearInterval(loopInterval);
@@ -524,15 +546,32 @@ const init = async () => {
               stopLossPercentage > highestStopLossPer
             ) {
               console.log(
-                `Runtime has stopped due to stop loss percentage is < ${
+                `Runtime has stopped due to stop loss percentage is < ${(
                   lowestStopLossPer * 100
-                }% or > ${(highestStopLossPer * 100).toFixed(
+                ).toFixed(2)}% or > ${(highestStopLossPer * 100).toFixed(
                   2
-                )}%: Current percentage - ${stopLossPercentage * 100}%`
+                )}%: Current percentage - ${(stopLossPercentage * 100).toFixed(
+                  2
+                )}%`
               );
               loopFinalPrice = "";
               clearInterval(loopInterval);
               return init();
+            }
+
+            // To change reward ratio if stop loss % is between Highest and the % to change
+            if (
+              stopLossPercentage >= ChangeRewardRatioPer &&
+              stopLossPercentage <= highestStopLossPer
+            ) {
+              targetRewardRatio = 1.5;
+              console.log(
+                `As the current SL% is ${(stopLossPercentage * 100).toFixed(
+                  2
+                )}%, hence reward ratio changed to ${targetRewardRatio} `
+              );
+            } else {
+              targetRewardRatio = 2;
             }
 
             // To calculate order quantity
