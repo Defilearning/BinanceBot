@@ -1,6 +1,6 @@
-const accountAPI = require("./API/accountAPI");
-const marketAPI = require("./API/marketAPI");
-const TA = require("./technical_Indicator");
+const accountAPI = require("../API/accountAPI");
+const marketAPI = require("../API/marketAPI");
+const TA = require("../technical_Indicator");
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 // Init setting for 1st time

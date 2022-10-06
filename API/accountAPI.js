@@ -1,7 +1,7 @@
 require("dotenv").config();
 
 const axios = require("axios").default;
-const obtainSignature = require("../utility").signature;
+const obtainSignature = require("../utils/Signature").signature;
 
 const headers = {
   "Content-Type": "application/json",
@@ -11,40 +11,42 @@ const headers = {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Check Income History
 exports.checkIncome = async () => {
-    const queryString = `timestamp=${Date.now()}`;
-    const signature = obtainSignature(queryString);
-    const response = await axios({
-      method: "get",
-      url: `${process.env.TESTNET}/fapi/v1/income?${queryString}&signature=${signature}`,
-      headers,
-    });
-    return response.data;
+  const queryString = `timestamp=${Date.now()}`;
+  const signature = obtainSignature(queryString);
+  const response = await axios({
+    method: "get",
+    url: `${process.env.TESTNET}/fapi/v1/income?${queryString}&signature=${signature}`,
+    headers,
+  });
+
+  return response?.data;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Check future balance
 exports.checkFutureBalance = async () => {
-    const queryString = `timestamp=${Date.now()}`;
-    const signature = obtainSignature(queryString);
-    const response = await axios({
-      method: "get",
-      url: `${process.env.TESTNET}/fapi/v2/balance?${queryString}&signature=${signature}`,
-      headers,
-    });
-    return response.data;
+  const queryString = `timestamp=${Date.now()}`;
+  const signature = obtainSignature(queryString);
+  const response = await axios({
+    method: "get",
+    url: `${process.env.TESTNET}/fapi/v2/balance?${queryString}&signature=${signature}`,
+    headers,
+  });
+
+  return response?.data;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Check Future Position
 exports.checkPosition = async (symbol) => {
-    const queryString = `symbol=${symbol}&timestamp=${Date.now()}`;
-    const signature = obtainSignature(queryString);
-    const response = await axios({
-      method: "get",
-      url: `${process.env.TESTNET}/fapi/v2/positionRisk?${queryString}&signature=${signature}`,
-      headers,
-    });
-    return response.data;
+  const queryString = `symbol=${symbol}&timestamp=${Date.now()}`;
+  const signature = obtainSignature(queryString);
+  const response = await axios({
+    method: "get",
+    url: `${process.env.TESTNET}/fapi/v2/positionRisk?${queryString}&signature=${signature}`,
+    headers,
+  });
+  return response?.data;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -60,7 +62,7 @@ exports.initialMargin = async (symbol, marginType) => {
     });
     return `Account margin has set to ISOLATED!`;
   } catch (err) {
-    return err.response.data.msg;
+    return err.response?.data.msg;
   }
 };
 
@@ -75,34 +77,35 @@ exports.initialLeverage = async (symbol, leverage) => {
       url: `${process.env.TESTNET}/fapi/v1/leverage?${queryString}&signature=${signature}`,
       headers,
     });
-    return `Account leverge has set to ${response.data.leverage}!`;
+    return `Account leverge has set to ${response?.data.leverage}!`;
   } catch (err) {
-    return err.response.data.msg;
+    return err.response?.data.msg;
   }
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Open new GTC Order
 exports.newOrderLimit = async (symbol, side, timeInForce, quantity, price) => {
-    const queryString = `symbol=${symbol}&side=${side}&type=LIMIT&timeInForce=${timeInForce}&quantity=${quantity}&price=${price}&timestamp=${Date.now()}`;
-    const signature = obtainSignature(queryString);
-    const response = await axios({
-      method: "post",
-      url: `${process.env.TESTNET}/fapi/v1/order?${queryString}&signature=${signature}`,
-      headers,
-    });
-    return response.data;
+  const queryString = `symbol=${symbol}&side=${side}&type=LIMIT&timeInForce=${timeInForce}&quantity=${quantity}&price=${price}&timestamp=${Date.now()}`;
+  const signature = obtainSignature(queryString);
+  const response = await axios({
+    method: "post",
+    url: `${process.env.TESTNET}/fapi/v1/order?${queryString}&signature=${signature}`,
+    headers,
+  });
+  return response?.data;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Open new Market Order
 exports.newOrderMarket = async (symbol, side, quantity) => {
-    const queryString = `symbol=${symbol}&side=${side}&type=MARKET&quantity=${quantity}&timestamp=${Date.now()}`;
-    const signature = obtainSignature(queryString);
-    const response = await axios({
-      method: "post",
-      url: `${process.env.TESTNET}/fapi/v1/order?${queryString}&signature=${signature}`,
-      headers,
-    });
-    return response.data;
+  const queryString = `symbol=${symbol}&side=${side}&type=MARKET&quantity=${quantity}&timestamp=${Date.now()}`;
+  const signature = obtainSignature(queryString);
+  const response = await axios({
+    method: "post",
+    url: `${process.env.TESTNET}/fapi/v1/order?${queryString}&signature=${signature}`,
+    headers,
+  });
+
+  return response?.data;
 };
