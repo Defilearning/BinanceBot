@@ -518,7 +518,7 @@ app.post(
 );
 
 app.get("/bot/logs", apiLimiter(1, 60), accountProtect, (req, res) => {
-  const data = fs.readFileSync("./output.log").toString("ascii");
+  const data = fs.readFileSync("./logs/output.log").toString("ascii");
 
   res.status(200).json({
     status: "success",
