@@ -217,7 +217,6 @@ app.get("/bot/logout", apiLimiter(1, 50), (req, res, next) => {
 });
 
 const accountProtect = async (req, res, next) => {
-  return next();
   // 1) Getting token and check of if it's there
   let token;
 
@@ -262,7 +261,6 @@ const accountProtect = async (req, res, next) => {
 };
 
 const twoFactorProtect = (req, res, next) => {
-  return next();
   const { authenticator } = req.body;
 
   if (!authenticator) {
