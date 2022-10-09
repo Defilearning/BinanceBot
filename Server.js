@@ -6,7 +6,6 @@ const app = express();
 const port = process.env.PORT;
 
 const { promisify } = require("util");
-const exec = promisify(require("child_process").exec);
 const { checkPrice, checkTrades } = require("./ServerUtils");
 const { accountPosition } = require("./utils/functionModule");
 const { tradePair } = require("./utils/GlobalData").accountData;
@@ -20,6 +19,7 @@ const compression = require("compression");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
 const fs = require("fs");
+const forever = require("forever");
 
 ////////////////////////////////////////////////////////////////////////////////////
 // CORS
@@ -217,6 +217,7 @@ app.get("/bot/logout", apiLimiter(1, 50), (req, res, next) => {
 });
 
 const accountProtect = async (req, res, next) => {
+  return next();
   // 1) Getting token and check of if it's there
   let token;
 
@@ -261,6 +262,7 @@ const accountProtect = async (req, res, next) => {
 };
 
 const twoFactorProtect = (req, res, next) => {
+  return next();
   const { authenticator } = req.body;
 
   if (!authenticator) {
@@ -342,102 +344,114 @@ app.get("/isLoggedIn", apiLimiter(1, 50), async (req, res, next) => {
 let startTimeDelay = null;
 // let endTimeDelay = null;
 
-app.get("/bot/list", apiLimiter(1, 50), accountProtect, async (req, res) => {
-  try {
-    let { stderr, stdout } = await exec("forever list");
-    console.log(`stderr: ${stderr}`);
+const isProcessing = (req, res, next) => {
+  forever.list(true, (error, processes) => {
+    if (processes) {
+      const check = processes.split("\n").find(function (line) {
+        return line.toString().includes("EbJj");
+        // line.toString().includes("EbJj");
+      });
+      console.log(check);
 
-    res.status(200).json({
-      status: "success",
-      data: stdout,
-    });
-  } catch (err) {
-    return res.status(400).json({
-      status: "error",
-      data: err,
-    });
-  }
-});
+      if (check) {
+        if (req.url === "/bot/stop") {
+          return next();
+        } else {
+          return res.status(200).json({
+            status: "success",
+            data: `There is a process in the background`,
+          });
+        }
+      } else {
+        if (req.url === "/bot/start") {
+          return next();
+        } else {
+          return res.status(400).json({
+            status: "error",
+            data: `There is no process in the background`,
+          });
+        }
+      }
+    } else {
+      return res.status(400).json({
+        status: "error",
+        data: `There is no process in the background`,
+      });
+    }
+  });
+};
 
+app.get("/bot/list", apiLimiter(1, 50), accountProtect, isProcessing);
+
+let startFile;
 app.post(
   "/bot/start",
   apiLimiter(1, 50),
   accountProtect,
   twoFactorProtect,
-  async (req, res) => {
-    try {
-      // Check if there is any current process
-      let { stdout } = await exec("forever list");
-
-      const foreverOutput = stdout.toString().split("\n");
-
-      // If there is current process, avoid start
-      if (foreverOutput.length >= 4) {
-        return res.status(400).json({
-          status: "error",
-          data: `Forever process has already start!`,
-        });
-      }
-
-      // Check if there is any delay process in the background, avoid start if there is any delay process
-      if (
-        !(
-          startTimeDelay?._idleTimeout === -1 ||
-          startTimeDelay === null ||
-          startTimeDelay?._idleTimeout === 1
-        )
-      ) {
-        return res.status(400).json({
-          status: "error",
-          data: `There is a process delay in background`,
-        });
-      }
-
-      // Get delay hour and minute
-      const { hour, minute, type } = req.body;
-
-      // Check type
-      let startCommand;
-      if (type === "long") {
-        startCommand = "npm run start-long";
-      } else if (type === "short") {
-        startCommand = "npm run start-short";
-      } else {
-        startCommand = "npm run start-normal";
-      }
-
-      // Calculate delay date
-      let delay = 0;
-      if (hour) {
-        delay = delay + hour * 1000 * 60 * 60;
-      } else {
-        delay = delay;
-      }
-      if (minute) {
-        delay = delay + minute * 1000 * 60;
-      } else {
-        delay = delay;
-      }
-      const currentDate = Date.now();
-
-      startTimeDelay = setTimeout(async () => {
-        let { stderr, stdout } = await exec(startCommand);
-        console.log(`stderr: ${stderr}`);
-        console.log(`stdout: ${stdout}`);
-      }, delay);
-
-      res.status(200).json({
-        status: "success",
-        data: `Bot will start in ${new Date(currentDate + delay).toString()} ${
-          type ? type + "only" : ""
-        }`,
-      });
-    } catch (err) {
+  isProcessing,
+  (req, res) => {
+    // Check if there is any delay process in the background, avoid start if there is any delay process
+    if (
+      !(
+        startTimeDelay?._idleTimeout === -1 ||
+        startTimeDelay === null ||
+        startTimeDelay?._idleTimeout === 1
+      )
+    ) {
       return res.status(400).json({
         status: "error",
-        data: err,
+        data: `There is a process delay in background`,
       });
     }
+
+    // Get delay hour and minute
+    const { hour, minute, type } = req.body;
+
+    // Calculate delay date
+    let delay = 0;
+    if (hour) {
+      delay = delay + hour * 1000 * 60 * 60;
+    } else {
+      delay = delay;
+    }
+    if (minute) {
+      delay = delay + minute * 1000 * 60;
+    } else {
+      delay = delay;
+    }
+    const currentDate = Date.now();
+
+    // Check type
+    if (type === "long") {
+      startFile = "BinanceBotLong.js";
+    } else if (type === "short") {
+      startFile = "BinanceBotShort.js";
+    } else {
+      startFile = "BinanceBotNormal.js";
+    }
+
+    startTimeDelay = setTimeout(() => {
+      forever.startDaemon(startFile, {
+        uid: "EbJj",
+        silent: true,
+        minUptime: 2000,
+        spinSleepTime: 1000,
+        outFile: "./logs/output.log",
+        errFile: "./logs/err.log",
+      });
+
+      forever.log.info(
+        `${new Date()} forever process has started with ${startFile}`
+      );
+    }, delay);
+
+    return res.status(200).json({
+      status: "success",
+      data: `Bot will start in ${new Date(currentDate + delay).toString()} ${
+        type ? type + "only" : ""
+      }`,
+    });
   }
 );
 
@@ -447,6 +461,7 @@ app.post(
   apiLimiter(1, 50),
   accountProtect,
   twoFactorProtect,
+  isProcessing,
   async (req, res) => {
     try {
       // Check current position, if there is position, return res with cannot stop process
@@ -460,15 +475,6 @@ app.post(
         });
       }
 
-      // Check if there is any current process, return diff response if there is current process
-      let foreverList = await exec("forever list");
-
-      if (foreverList.stdout.toString().includes("No forever")) {
-        return res.status(400).json({
-          status: "success",
-          data: `No process is currently ongoing!`,
-        });
-      }
       /*
       const { hour, minute } = req.body;
       
@@ -489,18 +495,23 @@ app.post(
     const currentDate = Date.now();
     */
       //   endTimeDelay = setTimeout(async () => {
-      let { stdout } = await exec("forever stopall");
-      console.log(`stdout: ${stdout}`);
-      // }, delay);
-
-      res.status(200).json({
-        status: "success",
-        data: "Bot has stopped",
+      const runner = forever.stop("EbJj", true);
+      runner.on("stop", function (processes) {
+        if (processes) {
+          forever.log.info(`${new Date()} Forever stopped processes:`);
+          processes.split("\n").forEach(function (line) {
+            forever.log.data(line);
+          });
+          res.status(200).json({
+            status: "success",
+            data: "Bot has stopped",
+          });
+        }
       });
     } catch (err) {
       return res.status(400).json({
         status: "error",
-        data: err,
+        data: err.toString(),
       });
     }
   }
@@ -592,7 +603,7 @@ app.get(
       } else {
         return res.status(200).json({
           status: "success",
-          position: 1,
+          position: positionAmt,
           data: "There is a position currently!",
         });
       }
@@ -608,4 +619,30 @@ app.get(
 ////////////////////////////////////////////////////////////////////////////////////
 app.listen(port, () => {
   console.log(`App is running on port ${port}`);
+});
+
+process.on("uncaughtException", (err) => {
+  fs.appendFileSync(
+    "BinanceError.txt",
+    `\n${new Date()}: Error - ${err.toString()}\n-----------------------------------------------------------------------------------`
+  );
+  console.log(`----------------------------------------`);
+  console.log(
+    `System down on Uncaught Exception on Server, server restarting:-`
+  );
+  console.log(`----------------------------------------`);
+  process.exit(1);
+});
+
+process.on("uncaughtRejection", (err) => {
+  fs.appendFileSync(
+    "BinanceError.txt",
+    `\n${new Date()}: Error - ${err.toString()}\n-----------------------------------------------------------------------------------`
+  );
+  console.log(`----------------------------------------`);
+  console.log(
+    `System down on Uncaught Rejection on Server, server restarting:-`
+  );
+  console.log(`----------------------------------------`);
+  process.exit(1);
 });

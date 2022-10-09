@@ -26,46 +26,7 @@ const StartAppPage = () => {
 
     const { data } = await response.json();
 
-    const filteredRes = data
-      .replaceAll("[32m", "")
-      .replaceAll("[33m", "")
-      .replaceAll("[35m", "")
-      .replaceAll("[37m", "")
-      .replaceAll("[39m", "")
-      .replaceAll("[90m", "")
-      .split("\n");
-
-    if (filteredRes.length >= 3) {
-      const upTime = filteredRes
-        .at(2)
-        .split(" ")
-        .slice(-2, -1)
-        .at(0)
-        .split(":");
-
-      const timeFrame = {
-        day: upTime.at(0),
-        hour: upTime.at(1),
-        minute: upTime.at(2),
-        second: upTime.at(3),
-      };
-
-      const revisedResponse =
-        filteredRes.at(0) +
-        ` - UpTime: ${timeFrame.day === "0" ? "" : timeFrame.day}${
-          timeFrame.day === "0" ? "" : " days "
-        }${timeFrame.hour === "0" ? "" : timeFrame.hour}${
-          timeFrame.hour === "0" ? "" : " hours "
-        }${timeFrame.minute === "0" ? "" : timeFrame.minute}${
-          timeFrame.minute === "0" ? "" : " minutes "
-        }${timeFrame.second === "0" ? "" : (+timeFrame.second).toFixed(0)}${
-          timeFrame.second === "0" ? "" : " seconds "
-        }`;
-
-      setProcess(revisedResponse);
-    } else {
-      setProcess(filteredRes.at(0));
-    }
+    setProcess(data);
   };
 
   const startProcess = async () => {
