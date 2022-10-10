@@ -3,8 +3,6 @@ exports.accountData = {
   accountMargin: "ISOLATED",
   accountLeverage: 50,
   tradePair: "BTCBUSD",
-  culmulativePNL: 0,
-  PNLDate: new Date(),
   defaultCommission: 0.24,
   timeRemaining: 2000,
 };

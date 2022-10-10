@@ -11,7 +11,7 @@ const {
   riskStopLossPrice,
   decimalToFixed,
 } = require("./GlobalData").orderData;
-const {readFileSync, writeFileSync} = require('fs')
+const { readFileSync, writeFileSync } = require("fs");
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 exports.accountBalance = async (accountFiat) => {
@@ -237,16 +237,15 @@ exports.changeTargetRewardRatio = (positionData, stopLossPercentage) => {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 exports.calculateDate = (accountData, positionData, type) => {
-  //let { culmulativePNL, PNLDate, defaultCommission, timeRemaining } =
-    //accountData;
-  let { defaultCommission, timeRemaining } =
-    accountData;
+  let { defaultCommission, timeRemaining } = accountData;
   let { targetRewardRatio } = positionData;
 
-  let [PNLDate, culmulativePNL] = readFileSync('./utils/CulmulativePNL.txt').toString('ascii').split('\n')
+  let [PNLDate, culmulativePNL] = readFileSync("./utils/CulmulativePNL.txt")
+    .toString("ascii")
+    .split("\n");
 
-  let PNLday
-  if(PNLDate !== 'null'){
+  let PNLday;
+  if (PNLDate !== "null") {
     PNLday = PNLDate.toString().split(" ").at(2);
   }
 
@@ -264,10 +263,16 @@ exports.calculateDate = (accountData, positionData, type) => {
 
   // If current date !== PNL date, current date = PNL date
   if (PNLday !== currentDay) {
-    writeFileSync('./utils/CulmulativePNL.txt', `${currentDate}\n${currentPNL}`)
+    writeFileSync(
+      "./utils/CulmulativePNL.txt",
+      `${currentDate}\n${currentPNL}`
+    );
   } else {
     culmulativePNL = +culmulativePNL + currentPNL;
-    writeFileSync('./utils/CulmulativePNL.txt', `${currentDate}\n${culmulativePNL}`)
+    writeFileSync(
+      "./utils/CulmulativePNL.txt",
+      `${currentDate}\n${culmulativePNL}`
+    );
   }
 
   if (culmulativePNL >= (targetRewardRatio - defaultCommission) * 2) {
