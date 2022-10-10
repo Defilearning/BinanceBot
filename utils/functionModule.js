@@ -11,6 +11,7 @@ const {
   riskStopLossPrice,
   decimalToFixed,
 } = require("./GlobalData").orderData;
+const {readFileSync, writeFileSync} = require('fs')
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 exports.accountBalance = async (accountFiat) => {
@@ -236,11 +237,18 @@ exports.changeTargetRewardRatio = (positionData, stopLossPercentage) => {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 exports.calculateDate = (accountData, positionData, type) => {
-  let { culmulativePNL, PNLDate, defaultCommission, timeRemaining } =
+  //let { culmulativePNL, PNLDate, defaultCommission, timeRemaining } =
+    //accountData;
+  let { defaultCommission, timeRemaining } =
     accountData;
   let { targetRewardRatio } = positionData;
 
-  const PNLday = PNLDate.toString().split(" ").at(2);
+  let [PNLDate, culmulativePNL] = readFileSync('./utils/CulmulativePNL.txt').toString('ascii').split('\n')
+
+  let PNLday
+  if(PNLDate !== 'null'){
+    PNLday = PNLDate.toString().split(" ").at(2);
+  }
 
   const currentDate = new Date();
   const currentDay = currentDate.toString().split(" ").at(2);
@@ -256,10 +264,10 @@ exports.calculateDate = (accountData, positionData, type) => {
 
   // If current date !== PNL date, current date = PNL date
   if (PNLday !== currentDay) {
-    culmulativePNL = currentPNL;
-    PNLDate = currentDate;
+    writeFileSync('./utils/CulmulativePNL.txt', `${currentDate}\n${currentPNL}`)
   } else {
-    culmulativePNL = culmulativePNL + currentPNL;
+    culmulativePNL = +culmulativePNL + currentPNL;
+    writeFileSync('./utils/CulmulativePNL.txt', `${currentDate}\n${culmulativePNL}`)
   }
 
   if (culmulativePNL >= (targetRewardRatio - defaultCommission) * 2) {
@@ -278,10 +286,10 @@ exports.calculateDate = (accountData, positionData, type) => {
       `As 3.5 Reward ratio made, hence system restart in ${nextDate.toString()}`
     );
 
-    return { ...accountData, timeRemaining, culmulativePNL };
+    return { ...accountData, timeRemaining };
   } else {
     // return 2000 miliseconds
     timeRemaining = 2000;
-    return { ...accountData, timeRemaining, culmulativePNL };
+    return { ...accountData, timeRemaining };
   }
 };
