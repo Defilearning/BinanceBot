@@ -22,6 +22,15 @@ const fs = require("fs");
 const forever = require("forever");
 
 ////////////////////////////////////////////////////////////////////////////////////
+// set start file for start API
+let startFile;
+const currentStatus = {
+  "BinanceBotLong.js": "LONG only",
+  "BinanceBotShort.js": "SHORT only",
+  "BinanceBotNormal.js": "both LONG and SHORT",
+};
+
+////////////////////////////////////////////////////////////////////////////////////
 // CORS
 app.use(cors());
 app.options("*", cors());
@@ -357,7 +366,7 @@ const isProcessing = (req, res, next) => {
         } else {
           return res.status(200).json({
             status: "success",
-            data: `There is a process in the background`,
+            data: `There is a process in the background - ${currentStatus[startFile]}`,
           });
         }
       } else {
@@ -381,7 +390,6 @@ const isProcessing = (req, res, next) => {
 
 app.get("/bot/list", apiLimiter(1, 50), accountProtect, isProcessing);
 
-let startFile;
 app.post(
   "/bot/start",
   apiLimiter(1, 50),
