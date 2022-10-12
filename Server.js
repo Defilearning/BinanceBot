@@ -402,7 +402,8 @@ app.post(
       !(
         startTimeDelay?._idleTimeout === -1 ||
         startTimeDelay === null ||
-        startTimeDelay?._idleTimeout === 1
+        startTimeDelay?._idleTimeout === 1 ||
+        !startTimeDelay?._onTimeout
       )
     ) {
       return res.status(400).json({
@@ -450,6 +451,8 @@ app.post(
       forever.log.info(
         `${new Date()} forever process has started with ${startFile}`
       );
+
+      clearTimeout(startTimeDelay);
     }, delay);
 
     return res.status(200).json({
@@ -550,7 +553,8 @@ app.post(
     if (
       startTimeDelay?._idleTimeout === -1 ||
       startTimeDelay === null ||
-      startTimeDelay?._idleTimeout === 1
+      startTimeDelay?._idleTimeout === 1 ||
+      !startTimeDelay?._onTimeout
     ) {
       return res.status(200).json({
         status: "success",
@@ -598,25 +602,25 @@ app.get(
   async (req, res) => {
     try {
       positionData = await accountPosition(tradePair, positionData);
-      let { positionAmt } = positionData;
+      let { positionAmt, unRealizedProfit, positionPrice } = positionData;
 
       if (positionAmt === 0) {
         return res.status(200).json({
           status: "success",
-          position: 0,
           data: "There is no position currently!",
         });
       } else {
         return res.status(200).json({
           status: "success",
-          position: positionAmt,
-          data: "There is a position currently!",
+          data: `${
+            positionAmt < 0 ? "SHORT" : "LONG"
+          } ${tradePair} - Entry Price: ${positionPrice}, Unrealised Profit: ${unRealizedProfit}`,
         });
       }
     } catch (err) {
       return res.status(400).json({
         status: "error",
-        data: err,
+        data: err.toString(),
       });
     }
   }

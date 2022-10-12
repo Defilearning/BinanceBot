@@ -10,7 +10,6 @@ const LoginPage = ({ loginStatus }) => {
       password: passwordInput.current.value,
     };
 
-    //TOCHANGE: url, credentials and mode
     const fetchData = await fetch("/bot/login", {
       method: "POST",
       mode: "same-origin",
@@ -23,9 +22,7 @@ const LoginPage = ({ loginStatus }) => {
 
     const data = await fetchData.json();
 
-    // TODELETE: when production
     if (data.status === "success") {
-      // localStorage.setItem("EBJWT", data.token);
       loginStatus(true);
     } else {
       loginStatus(false);

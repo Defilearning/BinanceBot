@@ -31,11 +31,18 @@ exports.accountBalance = async (accountFiat) => {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 exports.accountPosition = async (tradePair, positionData) => {
   const position = (await checkPosition(tradePair)).at(0);
+  let unRealizedProfit = +position.unRealizedProfit;
   let positionAmt = +position.positionAmt;
   let positionPrice = +position.entryPrice;
   let positionPlaced = Math.abs(positionAmt);
 
-  return { ...positionData, positionAmt, positionPrice, positionPlaced };
+  return {
+    ...positionData,
+    positionAmt,
+    positionPrice,
+    positionPlaced,
+    unRealizedProfit,
+  };
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

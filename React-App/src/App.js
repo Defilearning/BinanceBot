@@ -7,12 +7,8 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [triedLogIn, setTriedLogIn] = useState(false);
 
-  // TODELETE: local storage
-  // const token = localStorage.getItem("EBJWT");
-
   useEffect(() => {
     const fetchLogInStatus = async () => {
-      //TOCHANGE: url, bearer token
       const fetchData = await fetch("/isLoggedIn", {
         method: "GET",
         headers: {

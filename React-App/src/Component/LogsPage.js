@@ -15,7 +15,7 @@ const LogsPage = () => {
 
     const data = await response.json();
 
-    const filteredRes = data.data.split("\n");
+    const filteredRes = data.data.split("\n").reverse();
     setLogs(filteredRes);
   };
 
@@ -31,7 +31,7 @@ const LogsPage = () => {
 
     const data = await response.json();
 
-    const filteredRes = data.data.split("\n");
+    const filteredRes = data.data.split("\n").reverse();
     setLogs(filteredRes);
   };
 
@@ -54,7 +54,7 @@ const LogsPage = () => {
       <div className="logs overflow-scroll bg-slate-300 border">
         {logs &&
           logs.map((el, i) => (
-            <p key={i} className="text-sm">
+            <p key={i} className="text-xs md:text-sm">
               {el}
             </p>
           ))}

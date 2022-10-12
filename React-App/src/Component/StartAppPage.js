@@ -3,6 +3,7 @@ import { useRef, useState } from "react";
 const StartAppPage = () => {
   const [process, setProcess] = useState(null);
   const [startBot, setStartBot] = useState(null);
+  const [position, setPosition] = useState(null);
   const [checkboxState, setCheckboxState] = useState(false);
   const [startDelay, setStartDelay] = useState(null);
   const [type, setType] = useState(null);
@@ -76,6 +77,21 @@ const StartAppPage = () => {
     setStartDelay(data);
   };
 
+  const checkPosition = async () => {
+    const response = await fetch("/bot/checkPosition", {
+      method: "GET",
+      mode: "same-origin",
+      headers: {
+        "Content-Type": "application/json",
+        // authorization: `Bearer ${jwt}`,
+      },
+    });
+
+    const { data } = await response.json();
+
+    setPosition(data);
+  };
+
   const onDelay = () => {
     if (checkbox.current.checked === true) {
       setCheckboxState(true);
@@ -111,6 +127,17 @@ const StartAppPage = () => {
         </button>
         <div className="bg-slate-300 h-20 border text-sm">
           {process && <p>{process}</p>}
+        </div>
+        <div className="mt-3">
+          <button
+            className="py-2 px-5 border bg-slate-100 w-full font-semibold"
+            onClick={checkPosition}
+          >
+            Check Current Position
+          </button>
+          <div className="bg-slate-300 h-20 border text-sm">
+            {position && <p>{position}</p>}
+          </div>
         </div>
       </div>
       <div>

@@ -702,7 +702,6 @@ const init = async () => {
       }
     }
   } catch (err) {
-    console.log(err);
     const stackTrace = {};
     Error.captureStackTrace(stackTrace);
 
