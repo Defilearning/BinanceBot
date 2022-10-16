@@ -109,3 +109,19 @@ exports.newOrderMarket = async (symbol, side, quantity) => {
 
   return response?.data;
 };
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Open new SL/TP Order
+exports.newOrderTPSL = async (symbol, side, quantity, price, type) => {
+  const queryString = `symbol=${symbol}&side=${side}&type=${
+    type === "SL" ? "STOP" : "TAKE_PROFIT"
+  }&quantity=${quantity}&price=${price}&stopPrice=${price}&timestamp=${Date.now()}`;
+  const signature = obtainSignature(queryString);
+  const response = await axios({
+    method: "post",
+    url: `${process.env.TESTNET}/fapi/v1/order?${queryString}&signature=${signature}`,
+    headers,
+  });
+
+  return response?.data;
+};

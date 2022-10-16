@@ -62,9 +62,15 @@ exports.setTPSL = (positionData, type) => {
     stopLossPrice = loopFinalPrice || positionPrice * (1 + defaultStopLossPer);
 
     // Set target profit Price = entryPrice - (HighestPrice - entryPrice) * targetRewardRatio
-    targetProfitPrice =
-      positionPrice - (loopFinalPrice - positionPrice) * targetRewardRatio ||
-      positionPrice * (1 - defaultTargetProfitPer);
+    targetProfitPrice = loopFinalPrice
+      ? positionPrice - (loopFinalPrice - positionPrice) * targetRewardRatio
+      : positionPrice * (1 - defaultTargetProfitPer);
+
+    if (loopFinalPrice === null) {
+      console.log(
+        `As system down previously, current SL: ${stopLossPrice}, TP: ${targetProfitPrice}`
+      );
+    }
 
     return { ...positionData, stopLossPrice, targetProfitPrice };
   } else {
@@ -72,9 +78,14 @@ exports.setTPSL = (positionData, type) => {
     stopLossPrice = loopFinalPrice || positionPrice * (1 - defaultStopLossPer);
 
     // Set target profit Price = entryPrice - (LowestPrice - entryPrice) * targetRewardRatio
-    targetProfitPrice =
-      positionPrice - (loopFinalPrice - positionPrice) * targetRewardRatio ||
-      positionPrice * (1 + defaultTargetProfitPer);
+    targetProfitPrice = loopFinalPrice
+      ? positionPrice - (loopFinalPrice - positionPrice) * targetRewardRatio
+      : positionPrice * (1 + defaultTargetProfitPer);
+
+    if (loopFinalPrice === null) {
+      `As system down previously, current SL: ${stopLossPrice}, TP: ${targetProfitPrice}`;
+    }
+
     return { ...positionData, stopLossPrice, targetProfitPrice };
   }
 };

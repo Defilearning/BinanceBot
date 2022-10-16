@@ -123,11 +123,23 @@ app.get("/botFetch", apiLimiter(15, 50), async (req, res) => {
   try {
     const response = (await checkTrades(1000)).reverse();
 
+    if (!response) {
+      return res.status(400).json({
+        status: "error",
+        data: "No response from Binance, please try again!",
+      });
+    }
+
     const data = await Promise.all(
       response.map(async (el) => {
-        const bnbPrice = +(
-          await checkPrice("BNBBUSD", "1m", 1, el.time, el.time + 1000 * 60)
-        )[0][4];
+        const bnbPrice = +(await checkPrice(
+          "BNBBUSD",
+          "1m",
+          1,
+          el.time,
+          el.time + 1000 * 60,
+          res
+        ));
 
         const date = new Date(el.time);
 
@@ -169,8 +181,8 @@ app.get("/botFetch", apiLimiter(15, 50), async (req, res) => {
     });
   } catch (err) {
     console.log(err);
-    res.status(201).json({
-      status: "success",
+    res.status(400).json({
+      status: "error",
       data: err,
     });
   }

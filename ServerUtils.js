@@ -11,18 +11,14 @@ const headers = {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Check every trades
 exports.checkTrades = async (limit = 500) => {
-  try {
-    const queryString = `timestamp=${Date.now()}&limit=${limit}`;
-    const signature = obtainSignature(queryString);
-    const response = await axios({
-      method: "get",
-      url: `${process.env.TESTNET}/fapi/v1/userTrades?${queryString}&signature=${signature}`,
-      headers,
-    });
-    return response.data;
-  } catch (err) {
-    console.log(err.response);
-  }
+  const queryString = `timestamp=${Date.now()}&limit=${limit}`;
+  const signature = obtainSignature(queryString);
+  const response = await axios({
+    method: "get",
+    url: `${process.env.TESTNET}/fapi/v1/userTrades?${queryString}&signature=${signature}`,
+    headers,
+  });
+  return response?.data;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -32,18 +28,23 @@ exports.checkPrice = async (
   interval,
   limit = 1,
   startTime,
-  endTime
+  endTime,
+  res
 ) => {
-  try {
-    const queryString = `symbol=${symbol}&interval=${interval}&limit=${limit}&startTime=${startTime}&endTime=${endTime}`;
+  const queryString = `symbol=${symbol}&interval=${interval}&limit=${limit}&startTime=${startTime}&endTime=${endTime}`;
 
-    const response = await axios({
-      method: "get",
-      url: `${process.env.TESTNET}/fapi/v1/klines?${queryString}`,
-      headers,
+  const response = await axios({
+    method: "get",
+    url: `${process.env.TESTNET}/fapi/v1/klines?${queryString}`,
+    headers,
+  });
+
+  if (!response) {
+    return res.status(400).json({
+      status: "error",
+      data: "No response from Binance, please try again!",
     });
-    return response.data.reverse();
-  } catch (err) {
-    console.log(err);
   }
+
+  return response?.data.reverse().at(0).at(4);
 };
