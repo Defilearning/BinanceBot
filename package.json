@@ -23,7 +23,8 @@
   "version": "1.0.0",
   "main": "binanceBot.js",
   "scripts": {
-    "start": "forever start Server.js"
+    "start": "forever start Server.js",
+    "logs": "forever logs Server.js -f"
   },
   "repository": {
     "type": "git",
