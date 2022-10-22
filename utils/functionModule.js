@@ -281,17 +281,15 @@ exports.calculateDate = (accountData, positionData, type) => {
 
   // If current date !== PNL date, current date = PNL date
   if (PNLday !== currentDay) {
-    writeFileSync(
-      "./utils/CulmulativePNL.txt",
-      `${currentDate}\n${currentPNL}`
-    );
+    culmulativePNL = currentPNL;
   } else {
     culmulativePNL = +culmulativePNL + currentPNL;
-    writeFileSync(
-      "./utils/CulmulativePNL.txt",
-      `${currentDate}\n${culmulativePNL}`
-    );
   }
+
+  writeFileSync(
+    "./utils/CulmulativePNL.txt",
+    `${currentDate}\n${culmulativePNL}`
+  );
 
   if (culmulativePNL >= (targetRewardRatio - defaultCommission) * 2) {
     const temporaryNextDate = +currentDate + 1000 * 60 * 60 * 24;
