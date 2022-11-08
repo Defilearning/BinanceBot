@@ -1,10 +1,10 @@
 # Crypto trading bot
-This is a automated crypto trading bot written in NodeJS. It is designed to made automated trading with Binance platform and the user can monitor the process through internet browser. The bot itself include 3 major parts which is algorithom script, frontend UI and backend server developement.
+This is an automated crypto trading bot written in NodeJS. It is designed to make automated trading with the Binance platform, users can monitor the process through an Internet browser. The bot itself includes 3 major parts: algorithom scripts, frontend UI and backend server developement.
 
 ##  Algorithom used
-The algorithom is using **EMA** and **RSI** as its technical indicator and using Binance API to make long or short order. The algorithom is as follow:-
+The algorithom uses **EMA** and **RSI** as its technical indicator and uses Binance API to make long or short orders. The logic of the algorithm is described below:-
 
-1. Calculate the EMA for 4 hours with 50 previous candles - EMA4h and RSI with 14 previous candles. If the current closing price is above EMA4h and RSI is below 30, it is considered as bull market and the bot will only waiting next signal for the long order. 
+1. Calculate the EMA with a 4 hour window with 50 previous candles - EMA4h and RSI with 14 previous candles. If the current closing price is above EMA4h and RSI is below 30, it is considered as bull market and the bot will only waiting next signal for the long order. 
 
 - ![1st picture](https://user-images.githubusercontent.com/105770404/199967959-5732cb68-f1d4-4af5-bc28-e972f8e53e1e.png)
 
