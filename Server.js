@@ -25,9 +25,9 @@ const forever = require("forever");
 // set start file for start API
 let startFile;
 const currentStatus = {
-  "BinanceBotLong.js": "LONG only",
-  "BinanceBotShort.js": "SHORT only",
-  "BinanceBotNormal.js": "both LONG and SHORT",
+  "./BinanceBotLong.js": "LONG only",
+  "./BinanceBotShort.js": "SHORT only",
+  "./BinanceBotNormal.js": "both LONG and SHORT",
 };
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -443,11 +443,11 @@ app.post(
 
     // Check type
     if (type === "long") {
-      startFile = "BinanceBotLong.js";
+      startFile = "./BinanceBotLong.js";
     } else if (type === "short") {
-      startFile = "BinanceBotShort.js";
+      startFile = "./BinanceBotShort.js";
     } else {
-      startFile = "BinanceBotNormal.js";
+      startFile = "./BinanceBotNormal.js";
     }
 
     startTimeDelay = setTimeout(() => {

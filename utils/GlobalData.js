@@ -16,7 +16,7 @@ exports.orderData = {
   global4hNonTradeRestriction: 0.0025,
   OrderIntervalMin: 1,
   orderTimeFrame: "1m",
-  nearEMAPer: 0.0005,
+  nearEMAPer: 0.001,
   nearEMAStopCounter: 3,
 };
 

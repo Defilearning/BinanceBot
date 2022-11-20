@@ -3,7 +3,7 @@ const {
   checkPosition,
   newOrderMarket,
 } = require("../API/accountAPI");
-const { loopStopCandleCounter } = require("./GlobalData");
+const { loopStopCandleCounter, orderData } = require("./GlobalData");
 const {
   global4hNonTradeRestriction,
   lowestStopLossPer,
@@ -241,16 +241,26 @@ exports.orderPriceAndQuantity = (closingPrice, positionData, side) => {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 exports.changeTargetRewardRatio = (positionData, stopLossPercentage) => {
+  const { highestStopLossPer, ChangeRewardRatioPer } = orderData;
   let { targetRewardRatio } = positionData;
 
-  targetRewardRatio = 1.5;
-  console.log(
-    `As the current SL% is ${(stopLossPercentage * 100).toFixed(
-      2
-    )}%, hence reward ratio changed to ${targetRewardRatio} `
-  );
-
-  return { ...positionData, targetRewardRatio };
+  // If SL% > 0.35% and < 0.4%, change TP% to 1.5R
+  if (
+    stopLossPercentage >= ChangeRewardRatioPer &&
+    stopLossPercentage <= highestStopLossPer
+  ) {
+    targetRewardRatio = 1.5;
+    console.log(
+      `As the current SL% is ${(stopLossPercentage * 100).toFixed(
+        2
+      )}%, hence reward ratio changed to ${targetRewardRatio} `
+    );
+    return { ...positionData, targetRewardRatio };
+  } else {
+    // Set back to default 2R
+    targetRewardRatio = 2;
+    return { ...positionData, targetRewardRatio };
+  }
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

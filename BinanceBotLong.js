@@ -316,6 +316,20 @@ const init = async () => {
 
                 // Set up interval to watch 3 counter
                 loopInterval = setInterval(async () => {
+                  // If Counter > 3, return init
+                  if (nearEMALoopCounter === nearEMAStopCounter + 1) {
+                    clearInterval(loopInterval);
+                    console.log(
+                      `${nearEMAStopCounter} has passed and the price is > ${(
+                        nearEMAPer * 100
+                      ).toFixed(2)}% or < ${(nearEMAPer * 100).toFixed(
+                        2
+                      )}% of current EMA, hence return to watch mode`
+                    );
+
+                    return init();
+                  }
+
                   const nearEMAPrice = await checkPrice(
                     tradePair,
                     orderTimeFrame
@@ -335,19 +349,6 @@ const init = async () => {
                     )}, Closing Price = ${nearEMAPrice}`
                   );
 
-                  // If Counter > 3, return init
-                  if (nearEMALoopCounter > nearEMAStopCounter + 1) {
-                    clearInterval(loopInterval);
-                    console.log(
-                      `${nearEMAStopCounter} has passed and the price is > ${(
-                        nearEMAPer * 100
-                      ).toFixed(2)}% or < ${(nearEMAPer * 100).toFixed(
-                        2
-                      )}% of current EMA, hence return to watch mode`
-                    );
-
-                    return init();
-                  }
                   if (
                     //if price near EMA9, then calculate quantity and open position
                     nearEMAPrice < loopEMAvalue * (1 + nearEMAPer) &&
@@ -371,15 +372,10 @@ const init = async () => {
                     }
 
                     // To change reward ratio if stop loss % is between Highest and the % to change
-                    if (
-                      stopLossPercentage >= ChangeRewardRatioPer &&
-                      stopLossPercentage <= highestStopLossPer
-                    ) {
-                      positionData = changeTargetRewardRatio(
-                        positionData,
-                        stopLossPercentage
-                      );
-                    }
+                    positionData = changeTargetRewardRatio(
+                      positionData,
+                      stopLossPercentage
+                    );
 
                     // Fill market order for LONG position
                     await orderFilled(
@@ -423,15 +419,10 @@ const init = async () => {
                 }
 
                 // To change reward ratio if stop loss % is between Highest and the % to change
-                if (
-                  stopLossPercentage >= ChangeRewardRatioPer &&
-                  stopLossPercentage <= highestStopLossPer
-                ) {
-                  positionData = changeTargetRewardRatio(
-                    positionData,
-                    stopLossPercentage
-                  );
-                }
+                positionData = changeTargetRewardRatio(
+                  positionData,
+                  stopLossPercentage
+                );
 
                 // Fill market with LONG position
                 await orderFilled(
@@ -462,7 +453,7 @@ const init = async () => {
             currentEMA4h * (1 - global4hNonTradeRestriction) &&
           currentRSI1m > 70 &&
           //NOTE: NO SHORT!!
-          currentRSI1m < 30
+          currentRSI1m <30 
         ) {
           console.log(
             `${new Date()} - Criteria to enter ${loopStopCandleCounter} candle loop for SHORT POSITION:-`
@@ -551,6 +542,20 @@ const init = async () => {
                 );
 
                 loopInterval = setInterval(async () => {
+                  // If Counter > 3, return init
+                  if (nearEMALoopCounter === nearEMAStopCounter + 1) {
+                    clearInterval(loopInterval);
+                    console.log(
+                      `${nearEMAStopCounter} has passed and the price is > ${(
+                        nearEMAPer * 100
+                      ).toFixed(2)}% or < ${(nearEMAPer * 100).toFixed(
+                        2
+                      )}% of current EMA, hence return to watch mode`
+                    );
+
+                    return init();
+                  }
+
                   const nearEMAPrice = await checkPrice(
                     tradePair,
                     orderTimeFrame
@@ -569,20 +574,6 @@ const init = async () => {
                       3
                     )}, Closing Price = ${nearEMAPrice}`
                   );
-
-                  // If Counter > 3, return init
-                  if (nearEMALoopCounter > nearEMAStopCounter + 1) {
-                    clearInterval(loopInterval);
-                    console.log(
-                      `${nearEMAStopCounter} has passed and the price is > ${(
-                        nearEMAPer * 100
-                      ).toFixed(2)}% or < ${(nearEMAPer * 100).toFixed(
-                        2
-                      )}% of current EMA, hence return to watch mode`
-                    );
-
-                    return init();
-                  }
 
                   if (
                     nearEMAPrice < loopEMAvalue * (1 + nearEMAPer) &&
@@ -610,15 +601,10 @@ const init = async () => {
                     }
 
                     // To change reward ratio if stop loss % is between Highest and the % to change
-                    if (
-                      stopLossPercentage >= ChangeRewardRatioPer &&
-                      stopLossPercentage <= highestStopLossPer
-                    ) {
-                      positionData = changeTargetRewardRatio(
-                        positionData,
-                        stopLossPercentage
-                      );
-                    }
+                    positionData = changeTargetRewardRatio(
+                      positionData,
+                      stopLossPercentage
+                    );
 
                     // Fill market order for LONG position
                     await orderFilled(
@@ -662,15 +648,10 @@ const init = async () => {
                 }
 
                 // To change reward ratio if stop loss % is between Highest and the % to change
-                if (
-                  stopLossPercentage >= ChangeRewardRatioPer &&
-                  stopLossPercentage <= highestStopLossPer
-                ) {
-                  positionData = changeTargetRewardRatio(
-                    positionData,
-                    stopLossPercentage
-                  );
-                }
+                positionData = changeTargetRewardRatio(
+                  positionData,
+                  stopLossPercentage
+                );
 
                 // Fill market order for SHORT position
                 await orderFilled(
