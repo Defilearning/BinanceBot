@@ -75,7 +75,7 @@ const init = async () => {
     if (positionAmt !== 0) {
       // Check clause to make sure Binance database updated
       if (!isCurrentPosition) {
-        setTimeout(() => {
+        return setTimeout(() => {
           console.log("Database not updated yet, return in 2 second");
           return init();
         }, 2000);
@@ -109,7 +109,7 @@ const init = async () => {
               let { timeRemaining } = accountData;
 
               // Settimeout to return init
-              setTimeout(() => {
+              return setTimeout(() => {
                 return init();
               }, timeRemaining);
             }
@@ -133,7 +133,7 @@ const init = async () => {
               let { timeRemaining } = accountData;
 
               // Settimeout to return init
-              setTimeout(() => {
+              return setTimeout(() => {
                 return init();
               }, timeRemaining);
             }
@@ -169,7 +169,7 @@ const init = async () => {
               let { timeRemaining } = accountData;
 
               // Settimeout to return init
-              setTimeout(() => {
+              return setTimeout(() => {
                 return init();
               }, timeRemaining);
             }
@@ -193,7 +193,7 @@ const init = async () => {
               let { timeRemaining } = accountData;
 
               // Settimeout to return init
-              setTimeout(() => {
+              return setTimeout(() => {
                 return init();
               }, timeRemaining);
             }
@@ -204,7 +204,7 @@ const init = async () => {
     // NOTE: IF THERE IS NO POSITION
     else if (positionAmt === 0) {
       if (isCurrentPosition) {
-        setTimeout(() => {
+        return setTimeout(() => {
           console.log("Database not updated yet, return in 2 second");
           return init();
         }, 2000);
@@ -391,7 +391,7 @@ const init = async () => {
                     isCurrentPosition = true;
 
                     // Settimeout 2 sec to return init for safeguard purpose
-                    setTimeout(() => {
+                    return setTimeout(() => {
                       return init();
                     }, 1000 * 2);
                   } else {
@@ -438,7 +438,7 @@ const init = async () => {
                 isCurrentPosition = true;
 
                 // Settimeout 2 sec to return init for safeguard purpose
-                setTimeout(() => {
+                return setTimeout(() => {
                   return init();
                 }, 1000 * 2);
               }
@@ -618,7 +618,7 @@ const init = async () => {
                     isCurrentPosition = true;
 
                     // Settimeout 2 sec to return init for safeguard purpose
-                    setTimeout(() => {
+                    return setTimeout(() => {
                       return init();
                     }, 1000 * 2);
                   } else {
@@ -665,7 +665,7 @@ const init = async () => {
                 isCurrentPosition = true;
 
                 // Settimeout 2 sec to return init for safeguard purpose
-                setTimeout(() => {
+                return setTimeout(() => {
                   return init();
                 }, 1000 * 2);
               }
@@ -675,7 +675,7 @@ const init = async () => {
           }, 1000 * 60 * OrderIntervalMin);
         } else {
           // NOTE: If there is no Criteria met at all, return to init()
-          setTimeout(() => {
+          return setTimeout(() => {
             // console.log(
             //   `None criteria fit as at ${new Date()}, return to watch mode!`
             // );
@@ -704,7 +704,7 @@ const init = async () => {
     console.log(`----------------------------------------`);
     console.log(`System down, restarting in 5 seconds:-`);
     console.log(`----------------------------------------`);
-    setTimeout(() => {
+    return setTimeout(() => {
       return init();
     }, 1000 * 5);
   }
