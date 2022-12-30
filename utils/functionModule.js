@@ -98,6 +98,9 @@ exports.positionFilled = async (
   type,
   loopInterval
 ) => {
+  // clear interval
+  clearInterval(loopInterval);
+
   let { stopLossPrice, targetProfitPrice, loopFinalPrice, positionPlaced } =
     positionData;
 
@@ -114,9 +117,6 @@ exports.positionFilled = async (
     }`
   );
 
-  // clear interval
-  clearInterval(loopInterval);
-
   // reset stop loss, target profit and loop final price
   stopLossPrice = targetProfitPrice = loopFinalPrice = "";
 
@@ -125,6 +125,10 @@ exports.positionFilled = async (
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 exports.orderFilled = async (tradePair, side, orderQuantity, loopInterval) => {
+  // Clear interval
+  clearInterval(loopInterval);
+
+  // Filed order
   const orderResponse = await newOrderMarket(
     tradePair,
     `${side === "long" ? "BUY" : "SELL"}`,
@@ -136,8 +140,6 @@ exports.orderFilled = async (tradePair, side, orderQuantity, loopInterval) => {
       orderResponse?.origQty
     }`
   );
-
-  clearInterval(loopInterval);
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
