@@ -57,6 +57,17 @@ exports.setTPSL = (positionData, type) => {
     defaultTargetProfitPer,
   } = positionData;
 
+  if (loopFinalPrice === null) {
+    let [previousFinalPrice, previousTargetRewardRatio] = readFileSync(
+      "./utils/PreviousPosition.txt"
+    )
+      .toString("ascii")
+      .split("\n");
+
+    loopFinalPrice = previousFinalPrice;
+    targetRewardRatio = previousTargetRewardRatio;
+  }
+
   if (type === "SHORT") {
     // Set stop loss Price = entryPrice + (HighestPrice - entryPrice) === HIGHEST PRICE
     stopLossPrice = loopFinalPrice || positionPrice * (1 + defaultStopLossPer);
@@ -65,14 +76,6 @@ exports.setTPSL = (positionData, type) => {
     targetProfitPrice = loopFinalPrice
       ? positionPrice - (loopFinalPrice - positionPrice) * targetRewardRatio
       : positionPrice * (1 - defaultTargetProfitPer);
-
-    if (loopFinalPrice === null) {
-      console.log(
-        `As system down previously, current SL: ${stopLossPrice}, TP: ${targetProfitPrice}`
-      );
-    }
-
-    return { ...positionData, stopLossPrice, targetProfitPrice };
   } else {
     // Set stop loss Price = entryPrice + (LowestPrice - entryPrice) === LOWEST PRICE
     stopLossPrice = loopFinalPrice || positionPrice * (1 - defaultStopLossPer);
@@ -81,13 +84,15 @@ exports.setTPSL = (positionData, type) => {
     targetProfitPrice = loopFinalPrice
       ? positionPrice - (loopFinalPrice - positionPrice) * targetRewardRatio
       : positionPrice * (1 + defaultTargetProfitPer);
-
-    if (loopFinalPrice === null) {
-      `As system down previously, current SL: ${stopLossPrice}, TP: ${targetProfitPrice}`;
-    }
-
-    return { ...positionData, stopLossPrice, targetProfitPrice };
   }
+
+  if (!loopFinalPrice && loopFinalPrice !== 0) {
+    console.log(
+      `As system down previously and no records on previous position, current SL: ${stopLossPrice}, TP: ${targetProfitPrice}`
+    );
+  }
+
+  return { ...positionData, stopLossPrice, targetProfitPrice };
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -244,7 +249,7 @@ exports.orderPriceAndQuantity = (closingPrice, positionData, side) => {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 exports.changeTargetRewardRatio = (positionData, stopLossPercentage) => {
   const { highestStopLossPer, ChangeRewardRatioPer } = orderData;
-  let { targetRewardRatio } = positionData;
+  let { targetRewardRatio, loopFinalPrice } = positionData;
 
   // If SL% > 0.35% and < 0.4%, change TP% to 1.5R
   if (
@@ -257,12 +262,18 @@ exports.changeTargetRewardRatio = (positionData, stopLossPercentage) => {
         2
       )}%, hence reward ratio changed to ${targetRewardRatio} `
     );
-    return { ...positionData, targetRewardRatio };
   } else {
     // Set back to default 2R
     targetRewardRatio = 2;
-    return { ...positionData, targetRewardRatio };
   }
+
+  // to record loopFinalPrice and Target Reward Ratio
+  writeFileSync(
+    "./utils/PreviousPosition.txt",
+    `${loopFinalPrice}\n${targetRewardRatio}`
+  );
+
+  return { ...positionData, targetRewardRatio };
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
